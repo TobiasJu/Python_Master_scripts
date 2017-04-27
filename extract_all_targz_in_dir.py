@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
-    print "This script extracts all files in a given directory, including sub directories."
+    print "This script extracts all .gz files (not jet .tar) in a given directory, including sub directories."
     print "Which directory (including sub directories) would you like to extract?"
     parser.print_help()
     sys.exit(0)
