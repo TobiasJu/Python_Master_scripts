@@ -6,6 +6,7 @@
 import argparse
 import sys
 import os
+from Bio import AlignIO
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -24,6 +25,8 @@ input_dir = args.directory
 pdbmap = args.pdbmap
 pdb_ids = []
 pfam_ids = []
+hit_count = 0
+hit_array = []
 
 with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
@@ -40,6 +43,16 @@ print len(pdb_ids)
 for dirpath, dir, files in os.walk(top=input_dir):
     for file in files:
         line_count = 0
+
+        print "open: "
+        print input_dir + file
+        alignment = AlignIO.read(open(input_dir + file), "stockholm")
+        print("Alignment length %i" % alignment.get_alignment_length())
+        for record in alignment:
+            print(record.seq + " " + record.id)
+        print(alignment.format("fasta"))
+        sys.exit(0)
+
         with open(input_dir + file, 'r') as pfam_family:
             for line in pfam_family:
                 if "#=GF AC" in line:
@@ -48,12 +61,17 @@ for dirpath, dir, files in os.walk(top=input_dir):
                     pfam_id_with_version_array = pfam_id_with_version.split(".")
                     file_pfam_id = pfam_id_with_version_array[0]
                     #print file_pfam_id
-                    if pfam_id in pfam_ids:
+                    if file_pfam_id in pfam_ids:
                         print file_pfam_id
+                        hit_count += 1
+                        hit_array.append(file_pfam_id)
                     else:
-                        lols = 0
+                        machnix = 0
                 line_count += 1
                 if line_count >= 5:
                     break
 
 print "finished!"
+print hit_count
+print len(hit_array)
+print len(list(set(hit_array)))

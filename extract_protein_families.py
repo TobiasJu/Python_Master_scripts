@@ -7,6 +7,8 @@ import os
 # this script extracts all Proteinfamilies from the given pfam Pfam-A.full.ncbi file (28GB)
 # and creates a file for each family
 
+########## WICHTIG splittet an ID nicht an //  muss noch gefixxt werden ########
+
 line_count = 0
 directory = "split/"
 
