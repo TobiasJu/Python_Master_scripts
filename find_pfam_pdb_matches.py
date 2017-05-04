@@ -6,11 +6,11 @@
 import argparse
 import sys
 import os
-from Bio import AlignIO
+import shutil
 
 # argparse for information
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--directory", help="input directory location", required=True)
+parser.add_argument("-d", "--directory", help="input directory of the Pfam family files", required=True)
 parser.add_argument("-p", "--pdbmap", help="pdbmap location", required=True)
 args = parser.parse_args()
 
@@ -20,13 +20,20 @@ if not len(sys.argv) > 1:
     parser.print_help()
     sys.exit(0)
 
-
 input_dir = args.directory
 pdbmap = args.pdbmap
 pdb_ids = []
 pfam_ids = []
 hit_count = 0
 hit_array = []
+output_dir = "/Pfam 31.0/membrane_filtered"
+print output_dir
+#dstdir = os.path.join(output_dir, os.path.dirname(file))
+
+try:
+    os.stat(output_dir)
+except:
+    os.mkdir(output_dir)
 
 with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
@@ -43,16 +50,8 @@ print len(pdb_ids)
 for dirpath, dir, files in os.walk(top=input_dir):
     for file in files:
         line_count = 0
-
         print "open: "
         print input_dir + file
-        alignment = AlignIO.read(open(input_dir + file), "stockholm")
-        print("Alignment length %i" % alignment.get_alignment_length())
-        for record in alignment:
-            print(record.seq + " " + record.id)
-        print(alignment.format("fasta"))
-        sys.exit(0)
-
         with open(input_dir + file, 'r') as pfam_family:
             for line in pfam_family:
                 if "#=GF AC" in line:
@@ -60,13 +59,13 @@ for dirpath, dir, files in os.walk(top=input_dir):
                     pfam_id_with_version = array[-1]
                     pfam_id_with_version_array = pfam_id_with_version.split(".")
                     file_pfam_id = pfam_id_with_version_array[0]
-                    #print file_pfam_id
                     if file_pfam_id in pfam_ids:
                         print file_pfam_id
                         hit_count += 1
                         hit_array.append(file_pfam_id)
+                        shutil.copy(dir + file, output_dir)
                     else:
-                        machnix = 0
+                        doNothing = 0
                 line_count += 1
                 if line_count >= 5:
                     break
