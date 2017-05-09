@@ -10,13 +10,19 @@ import shutil
 
 # argparse for information
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--directory", help="input directory of the Pfam family files", required=True)
-parser.add_argument("-p", "--pdbmap", help="pdbmap location", required=True)
+parser.add_argument("-d", "--directory", help="input directory of the Pfam family files")
+parser.add_argument("-p", "--pdbmap", help="pdbmap location")
 args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
     print "this script takes a folder of PFAM families and extracts the ones with cleared structure in the PDB"
+    parser.print_help()
+    sys.exit(0)
+
+if not args.pdbmap or not args.directory:
+    print "this script takes a folder of PFAM families and extracts the ones with cleared structure in the PDB"
+    print "please provide the needed input"
     parser.print_help()
     sys.exit(0)
 
@@ -26,15 +32,16 @@ pdb_ids = []
 pfam_ids = []
 hit_count = 0
 hit_array = []
-output_dir = "/Pfam 31.0/membrane_filtered"
+output_dir = "Pfam 31.0/globular_filtered"
 print output_dir
 #dstdir = os.path.join(output_dir, os.path.dirname(file))
 
 try:
-    os.stat(output_dir)
+    os.makedirs(output_dir)
 except:
-    os.mkdir(output_dir)
+    print "Folder " + output_dir + " already exist!"
 
+# load all pfam ids from the pdbmap file into a list
 with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
         line_array = line.split(";\t")
@@ -43,7 +50,7 @@ with open(pdbmap, 'r') as pdbmap_file:
         pfam_ids.append(pfam_id)
         pdb_ids.append(pdb_id)
 
-print len(pfam_ids)
+print len(set(pfam_ids))
 print len(pdb_ids)
 
 # walk through the given directory and check if Pfam ID is in the pdbmap file (if the structure is cleared)
@@ -63,7 +70,7 @@ for dirpath, dir, files in os.walk(top=input_dir):
                         print file_pfam_id
                         hit_count += 1
                         hit_array.append(file_pfam_id)
-                        shutil.copy(dir + file, output_dir)
+                        shutil.copy(dirpath + file, output_dir)
                     else:
                         doNothing = 0
                 line_count += 1
