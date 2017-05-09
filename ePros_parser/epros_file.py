@@ -20,3 +20,12 @@ class epros_file:
         self.__ss = ss
         self.__energy = energy
 
+    def print_all(self):
+        print self.__name
+        print self.__type
+        print self.__head
+        print self.__chain
+        print self.__resno
+        print self.__res
+        print self.__ss
+        print self.__energy
