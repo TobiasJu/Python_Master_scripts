@@ -8,7 +8,6 @@ import argparse
 from Bio import AlignIO
 from Bio import pairwise2
 import time
-from pprint import pprint
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -80,8 +79,6 @@ def create_energyprofile(energy_file, dirpath):
                     res.append(line_array[3])
                     ss.append(line_array[4])
                     energy.append(line_array[5].rstrip())
-            # else:
-            #    print "found REMK line in file: " + file
             line_count += 1
     return epros_file(name, type, head, chain, resno, res, ss, energy)
 
@@ -91,7 +88,6 @@ with open(pdbmap, 'r') as pdbmap_file:
         line_array = line.split(";\t")
         insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
 
-# print pdbmap_dict
 # open all energy files and create Energy Objects
 for dirpath, dir, files in os.walk(top=energy_dir):
     for file in files:
@@ -99,22 +95,24 @@ for dirpath, dir, files in os.walk(top=energy_dir):
 print str(time.time() - start_time)
 
 # debug
-for entry in energy_list:
-    print entry.print_all()
-    print "done"
-    # sys.exit(0)
+#for entry in energy_list:
+#    print entry.print_all()
+#    print "done"
+#    sys.exit(0)
 
 # align Pfam sequence with EP sequence
 for dirpath1, dir1, files1 in os.walk(top=args.directory):
     for file1 in files1:
-        print file1
-
+        print dirpath1 + file1
         pfam_alignment = AlignIO.read(open(dirpath1 + file1), "stockholm")
         print("Alignment length %i" % pfam_alignment.get_alignment_length())
         for record in pfam_alignment:
-            print(record.seq + " " + record.id)
+            # print(record.seq + " " + record.id)
             for entry in energy_list:
-                epros_ss = ''.join(entry._epros_file__ss)
-                alignments = pairwise2.align.globalxx(record.seq, str(epros_ss))
+                epros_ss = ''.join(entry._epros_file__res)
+                alignments = pairwise2.align.globalxx(record.seq, str(epros_ss), score_only)
                 print alignments
-                print ""
+                print "next"
+
+
+

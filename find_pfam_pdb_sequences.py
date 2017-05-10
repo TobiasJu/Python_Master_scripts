@@ -54,7 +54,7 @@ for dirpath, dir, files in os.walk(top=input_dir):
         line_count = 0
         print "writing to: " + output_dir + file
         target = open(output_dir + file, 'w')
-        target.write("# STOCKHOLM 1.0")
+        target.write("# STOCKHOLM 1.0\n")
         with open(dirpath + file, 'r') as pfam_family:
             for line in pfam_family:
                 if "#=" in line:
