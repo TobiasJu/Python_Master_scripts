@@ -39,7 +39,6 @@ print "starting..."
 start_time = time.time()
 energy_dir = args.energy
 pfam_dir = args.directory
-energy_list = []
 pdbmap = args.pdbmap
 pdbmap_dict = {}
 
@@ -52,7 +51,7 @@ def insert_into_data_structure(key, value, dict):
 
 
 # creates a epros_file object
-def create_energyprofile(energy_file, dirpath):
+def create_energyprofile(energy_file):
     line_count = 0
     name = ""
     type = ""
@@ -62,7 +61,7 @@ def create_energyprofile(energy_file, dirpath):
     res = []
     ss = []
     energy = []
-    with open(dirpath + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
+    with open(energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
         for line in energy_file_handle:
             line_array = line.split("\t")
             if not "REMK" in line_array:
@@ -73,6 +72,9 @@ def create_energyprofile(energy_file, dirpath):
                 elif line_count == 2:
                     header = line_array
                 else:
+                    # just extract the A Chain
+                    if line_array[1] == "B":
+                        break
                     head.append(line_array[0])
                     chain.append(line_array[1])
                     resno.append(line_array[2])
@@ -82,37 +84,41 @@ def create_energyprofile(energy_file, dirpath):
             line_count += 1
     return epros_file(name, type, head, chain, resno, res, ss, energy)
 
-# load all pfam ids from the pdbmap file into a list
+
+# ------------------------------- main script -------------------------------- #
+
+# load all pfam ids from the pdbmap file into a dict
 with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
         line_array = line.split(";\t")
         insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
 
-# open all energy files and create Energy Objects
-for dirpath, dir, files in os.walk(top=energy_dir):
-    for file in files:
-        energy_list.append(create_energyprofile(file, dirpath))
-print str(time.time() - start_time)
-
-# debug
-#for entry in energy_list:
-#    print entry.print_all()
-#    print "done"
-#    sys.exit(0)
-
 # align Pfam sequence with EP sequence
 for dirpath1, dir1, files1 in os.walk(top=args.directory):
     for file1 in files1:
-        print dirpath1 + file1
+        energy_list = []
+        pfam_accesion = file1.split(".")[0]
+        print pfam_accesion
         pfam_alignment = AlignIO.read(open(dirpath1 + file1), "stockholm")
         print("Alignment length %i" % pfam_alignment.get_alignment_length())
+
+        # open wanted energy files and create Energy Objects
+        for pdb_id in pdbmap_dict[pfam_accesion]:
+            file = os.path.join(energy_dir + pdb_id + ".ep2")
+            if os.path.isfile(file):
+                print "creating energy object for: " + pfam_accesion
+                energy_list.append(create_energyprofile(file))
+
+        # align each pfam sequence
         for record in pfam_alignment:
-            # print(record.seq + " " + record.id)
+            # print(record.id + " " + record.seq)
+            # with each energy sequence
             for entry in energy_list:
-                epros_ss = ''.join(entry._epros_file__res)
-                alignments = pairwise2.align.globalxx(record.seq, str(epros_ss), score_only)
+                epros_ss = str(''.join(entry._epros_file__res))
+                alignments = pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
                 print alignments
                 print "next"
 
-
+print str(time.time() - start_time)
+print "Done"
 
