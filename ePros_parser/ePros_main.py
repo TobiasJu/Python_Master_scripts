@@ -8,6 +8,8 @@ import argparse
 from Bio import AlignIO
 from Bio import pairwise2
 import time
+import random
+import numpy
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -84,6 +86,17 @@ def create_energyprofile(energy_file):
             line_count += 1
     return epros_file(name, type, head, chain, resno, res, ss, energy)
 
+# random permute ep sequence 100 times and align it to the pfam sequence
+def align_with_permute_ep_seq(pfam_seq, ep_seq):
+    score_list = []
+    ep_list = list(ep_seq)
+    for step in range(100):
+        random.shuffle(ep_list)
+        ep_seq = ''.join(ep_list)
+        score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
+    print score_list
+    x_mean = numpy.mean(score_list)
+    return x_mean
 
 # ------------------------------- main script -------------------------------- #
 
@@ -106,7 +119,7 @@ for dirpath1, dir1, files1 in os.walk(top=args.directory):
         for pdb_id in pdbmap_dict[pfam_accesion]:
             file = os.path.join(energy_dir + pdb_id + ".ep2")
             if os.path.isfile(file):
-                print "creating energy object for: " + pfam_accesion
+                print "creating energy object " + pdb_id + " for pfam: " + pfam_accesion
                 energy_list.append(create_energyprofile(file))
 
         # align each pfam sequence
@@ -115,9 +128,16 @@ for dirpath1, dir1, files1 in os.walk(top=args.directory):
             # with each energy sequence
             for entry in energy_list:
                 epros_ss = str(''.join(entry._epros_file__res))
-                alignments = pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
-                print alignments
-                print "next"
+                x_row = pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
+                print "X_ROW: ", x_row
+                x_opt = pairwise2.align.globalxx(record.seq, record.seq, score_only=1)
+                print "X_OPT: ", x_opt
+                x_mean = align_with_permute_ep_seq(record.seq, epros_ss)
+                print "X_MEAN: ", x_mean
+                x_real = -1 * numpy.log((x_row - x_mean)/(x_opt - x_mean))
+                print "X_REAL: ", x_real
+
+                print "next alignment"
 
 print str(time.time() - start_time)
 print "Done"
