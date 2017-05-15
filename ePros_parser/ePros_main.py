@@ -51,41 +51,6 @@ def insert_into_data_structure(key, value, dict):
     else:
         dict[key].append((value))
 
-
-# creates a epros_file object
-def create_energyprofile(energy_file):
-    line_count = 0
-    name = ""
-    type = ""
-    head = []
-    chain = []
-    resno = []
-    res = []
-    ss = []
-    energy = []
-    with open(energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
-        for line in energy_file_handle:
-            line_array = line.split("\t")
-            if not "REMK" in line_array:
-                if line_count == 0:
-                    name = line_array[1]
-                elif line_count == 1:
-                    type = line_array[1]
-                elif line_count == 2:
-                    header = line_array
-                else:
-                    # just extract the A Chain
-                    if line_array[1] == "B":
-                        break
-                    head.append(line_array[0])
-                    chain.append(line_array[1])
-                    resno.append(line_array[2])
-                    res.append(line_array[3])
-                    ss.append(line_array[4])
-                    energy.append(line_array[5].rstrip())
-            line_count += 1
-    return epros_file(name, type, head, chain, resno, res, ss, energy)
-
 # random permute ep sequence 100 times and align it to the pfam sequence
 def align_with_permute_ep_seq(pfam_seq, ep_seq):
     score_list = []
@@ -107,12 +72,12 @@ with open(pdbmap, 'r') as pdbmap_file:
         insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
 
 # align Pfam sequence with EP sequence
-for dirpath1, dir1, files1 in os.walk(top=args.directory):
-    for file1 in files1:
+for dirpath, dir, files in os.walk(top=args.directory):
+    for file in files:
         energy_list = []
-        pfam_accesion = file1.split(".")[0]
+        pfam_accesion = file.split(".")[0]
         print pfam_accesion
-        pfam_alignment = AlignIO.read(open(dirpath1 + file1), "stockholm")
+        pfam_alignment = AlignIO.read(open(dirpath + file), "stockholm")
         print("Alignment length %i" % pfam_alignment.get_alignment_length())
 
         # open wanted energy files and create Energy Objects
@@ -120,7 +85,7 @@ for dirpath1, dir1, files1 in os.walk(top=args.directory):
             file = os.path.join(energy_dir + pdb_id + ".ep2")
             if os.path.isfile(file):
                 print "creating energy object " + pdb_id + " for pfam: " + pfam_accesion
-                energy_list.append(create_energyprofile(file))
+                energy_list.append(epros_file.create_energyprofile(file))
 
         # align each pfam sequence
         for record in pfam_alignment:

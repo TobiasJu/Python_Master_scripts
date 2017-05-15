@@ -29,3 +29,38 @@ class epros_file:
         print self.__res
         print self.__ss
         print self.__energy
+
+    # creates a epros_file object
+    @classmethod
+    def create_energyprofile(self, energy_file):
+        line_count = 0
+        name = ""
+        type = ""
+        head = []
+        chain = []
+        resno = []
+        res = []
+        ss = []
+        energy = []
+        with open(energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
+            for line in energy_file_handle:
+                line_array = line.split("\t")
+                if not "REMK" in line_array:
+                    if line_count == 0:
+                        name = line_array[1]
+                    elif line_count == 1:
+                        type = line_array[1]
+                    elif line_count == 2:
+                        header = line_array
+                    else:
+                        # just extract the A Chain
+                        if line_array[1] == "B":
+                            break
+                        head.append(line_array[0])
+                        chain.append(line_array[1])
+                        resno.append(line_array[2])
+                        res.append(line_array[3])
+                        ss.append(line_array[4])
+                        energy.append(line_array[5].rstrip())
+                line_count += 1
+        return epros_file(name, type, head, chain, resno, res, ss, energy)
