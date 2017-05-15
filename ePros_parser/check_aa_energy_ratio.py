@@ -27,7 +27,7 @@ def insert_into_data_structure(key, value, dict):
     else:
         dict[key].append((value))
 
-# ------------------------------- main script -------------------------------- #
+# ---------------------------------------- main script ------------------------------------------ #
 
 pdbmap = args.pdbmap
 pdbmap_dict = {}
