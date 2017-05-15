@@ -135,7 +135,9 @@ for dirpath, dir, files in os.walk(top=args.directory):
             # with each energy sequence
             for entry in energy_list:
                 epros_ss = str(''.join(entry._epros_file__res))
-                x_row = pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
+                pfam_energy_alignment = pairwise2.align.globalxx(record.seq, epros_ss)
+                x_row_max = 0
+                x_row = (line[2] =< x_row_max for line in pfam_energy_alignment)  # pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
                 print "X_ROW: ", x_row
                 x_opt = pairwise2.align.globalxx(record.seq, record.seq, score_only=1)
                 print "X_OPT: ", x_opt
