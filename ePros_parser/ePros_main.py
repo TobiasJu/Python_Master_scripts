@@ -37,13 +37,6 @@ if not args.energy:
     parser.print_help()
     sys.exit(0)
 
-print "starting..."
-start_time = time.time()
-energy_dir = args.energy
-pfam_dir = args.directory
-pdbmap = args.pdbmap
-pdbmap_dict = {}
-
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
     if not key in dict:
@@ -56,6 +49,9 @@ def align_with_permute_ep_seq(pfam_seq, ep_seq):
     score_list = []
     ep_list = list(ep_seq)
     for step in range(100):
+        # random int ziwschen 1 und len()
+        # dict 20 aa
+        # tauscht eine aus
         random.shuffle(ep_list)
         ep_seq = ''.join(ep_list)
         score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
@@ -63,7 +59,20 @@ def align_with_permute_ep_seq(pfam_seq, ep_seq):
     x_mean = numpy.mean(score_list)
     return x_mean
 
+def map_ep_to_pfam(energy_object, pfam_file):
+    print "mapping"
+    print energy_object
+    print pfam_file
+    # to do
+
 # ------------------------------- main script -------------------------------- #
+
+print "starting..."
+start_time = time.time()
+energy_dir = args.energy
+pfam_dir = args.directory
+pdbmap = args.pdbmap
+pdbmap_dict = {}
 
 # load all pfam ids from the pdbmap file into a dict
 with open(pdbmap, 'r') as pdbmap_file:
@@ -99,9 +108,13 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_OPT: ", x_opt
                 x_mean = align_with_permute_ep_seq(record.seq, epros_ss)
                 print "X_MEAN: ", x_mean
-                x_real = -1 * numpy.log((x_row - x_mean)/(x_opt - x_mean))
+                x_real = -1 * numpy.log10((x_row - x_mean)/(x_opt - x_mean))
                 print "X_REAL: ", x_real
-
+                seq_identity = 0 # wie?
+                x_pred = -1.0061 * numpy.log(seq_identity) + 4.7189
+                x_z = (x_real - x_pred) / 0.03858
+                if x_z >= 1.65:
+                    map_ep_to_pfam(entry, file)
                 print "next alignment"
 
 print str(time.time() - start_time)

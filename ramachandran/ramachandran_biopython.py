@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Please see accompanying webpage:
 #
 # http://www.warwick.ac.uk/go/peter_cock/python/ramachandran/calculate/
-http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/ramachandran/
+# vhttp://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/ramachandran/
 #
 # This code relies on Thomas Hamelryck's Bio.PDB module in BioPython:
 #
@@ -9,9 +12,6 @@ http://www2.warwick.ac.uk/fac/sci/moac/people/students/peter_cock/python/ramacha
 #
 # It assumes the input file 1HMP.pdb is in the current directory,
 # and generates an output file 1HMP_biopython.tsv in the current directory.
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import math
 def degrees(rad_angle) :
@@ -49,11 +49,11 @@ def ramachandran_type(residue, next_residue) :
     else :
         return "General"
 
-pdb_code = "1HMP"
+pdb_code = "pdb/01/pdb201d.ent"
 
 print "About to load Bio.PDB and the PDB file..."
 import Bio.PDB
-structure = Bio.PDB.PDBParser().get_structure(pdb_code, "%s.pdb" % pdb_code)
+structure = Bio.PDB.PDBParser().get_structure(pdb_code, "%s" % pdb_code)
 print "Done"
 
 print "About to save angles to file..."

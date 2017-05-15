@@ -26,8 +26,7 @@ for model in Bio.PDB.PDBParser().get_structure('201d', pdb1):
             for res_index, residue in enumerate(poly) :
                 #res_name = "%s%i" % (residue.resname, residue.id[1])
                 #print res_name, phi_psi[res_index]
-                phi_psi = np.vstack([phi_psi \
-                ,np.asarray(phi_psi[res_index])]).astype(np.float)
+                phi_psi = np.vstack([phi_psi, np.asarray(phi_psi[res_index])]).astype(np.float)
                 #np.float - conversion to float array from object
 
 phi, psi = np.transpose(phi_psi)
