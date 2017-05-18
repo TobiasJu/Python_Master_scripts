@@ -47,7 +47,7 @@ class epros_file:
                 line_array = line.split("\t")
                 if not "REMK" in line_array:
                     if line_count == 0:
-                        name = line_array[1]
+                        name = line_array[1].strip()
                     elif line_count == 1:
                         type = line_array[1]
                     elif line_count == 2:

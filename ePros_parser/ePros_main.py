@@ -80,15 +80,14 @@ def calc_seq_identity(seq1, seq2):
             max_legth = length
             pos = counter
         counter += 1
-    print max_score
-    print max_legth
-    print pos
+    # print max_score
+    # print max_legth
+    # print pos
     # print alignment[pos]
-    print alignment[pos][0], "\n", alignment[pos][1]
+    # print alignment[pos][0], "\n", alignment[pos][1]
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
-    gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
-    seq_identity = 100.0 * matches / (len(alignment[pos][0])-gap_counter)
-    # pct_identity = 100.0 * matches / (len(alignment[pos][0]))
+    #gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
+    seq_identity = 100.0 * matches / (len(alignment[pos][0]))
     print "Identity:", seq_identity
     return seq_identity
 
@@ -99,6 +98,10 @@ def map_ep_to_pfam(energy_object, pfam_file):
     # to do
 
 # ------------------------------- main script -------------------------------- #
+
+
+#calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
+#sys.exit(0)
 
 print "starting..."
 start_time = time.time()
@@ -120,7 +123,7 @@ for dirpath, dir, files in os.walk(top=args.directory):
         pfam_accesion = file.split(".")[0]
         print pfam_accesion
         pfam_alignment = AlignIO.read(open(dirpath + file), "stockholm")
-        print("Alignment length %i" % pfam_alignment.get_alignment_length())
+        # print("Alignment length %i" % pfam_alignment.get_alignment_length())
 
         # open wanted energy files and create Energy Objects
         for pdb_id in pdbmap_dict[pfam_accesion]:
@@ -134,10 +137,13 @@ for dirpath, dir, files in os.walk(top=args.directory):
             # print(record.id + " " + record.seq)
             # with each energy sequence
             for entry in energy_list:
+                print "alignment", entry._epros_file__name, "with", pfam_accesion
                 epros_ss = str(''.join(entry._epros_file__res))
                 pfam_energy_alignment = pairwise2.align.globalxx(record.seq, epros_ss)
-                x_row_max = 0
-                x_row = (line[2] =< x_row_max for line in pfam_energy_alignment)  # pairwise2.align.globalxx(record.seq, epros_ss, score_only=1)  # score_only=1
+                x_row = 0
+                for a in pfam_energy_alignment:
+                    if a[2] > x_row:
+                        x_row = a[2]
                 print "X_ROW: ", x_row
                 x_opt = pairwise2.align.globalxx(record.seq, record.seq, score_only=1)
                 print "X_OPT: ", x_opt
@@ -153,7 +159,6 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_Z: ", x_z
                 if x_z >= 1.65:
                     map_ep_to_pfam(entry, file)
-                print "next alignment"
 
 print str(time.time() - start_time)
 print "Done"

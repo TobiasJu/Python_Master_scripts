@@ -46,9 +46,9 @@ for dirpath, dir, files in os.walk(top=args.energy):
         counter += 1
         if counter % 10000 == 0:
             print energy_file
-            break
+            # break
         if energy_file.endswith(".ep2"):
-            with open(dirpath + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
+            with open(dirpath + energy_file, 'r') as energy_file_handle:
                 for line in energy_file_handle:
                     line_array = line.split("\t")
                     if not "REMK" in line_array:
@@ -100,47 +100,17 @@ print max_dict
 print "plotting..."
 print len(energy_dict.keys())
 
-d = {'hello': 3, 'how': 4, 'yes': 10, 'you': 11, 'days': 10, 'are': 20, 'ago': 11}
+index= []
+data = []
+for i, (key, val) in enumerate(energy_dict.iteritems()):
+    index.append(key)
+    data.append(map(float, val))
 
-plt.bar(range(len(d)), d.values(), align="center")
-plt.xticks(range(len(d)), list(d.keys()))
-plt.show()
-sys.exit(0)
-
-
-d = {"A": ['4026', '4024', '1940', '2912', '2916'], "B": ['3139', '2464'], 3: ['212'], 4: ['231', '312']}
-x= []
-y= []
-for k, v in d.iteritems():
-    x.extend(list(itertools.repeat(k, len(v))))
-    y.extend(v)
-plt.xlim(0, 5)
-plt.plot(x, y, 'ro')
-
-plt.show()
-sys.exit(0)
-
-
-
-#all_data = [numpy.random.normal(0, std, 100) for std in range(6, 10)]
-fig, ax1 = plt.subplots(figsize=(9, 4))
-
-# plot violin plot
-ax1.violinplot(energy_dict,
-                   showmeans=True,
-                   showmedians=False)
-ax1.set_title('violin plot')
-
-# adding horizontal grid lines
-ax1.yaxis.grid(True)
-ax1.set_xticks([y+1 for y in range(len(energy_dict))])
-ax1.set_xlabel('xlabel')
-ax1.set_ylabel('ylabel')
-
-# add x-tick labels
-#ax1.setp(xticks=[y+1 for y in range(len(energy_dict))],
-#                 xticklabels=['x1', 'x2', 'x3', 'x4'])  # len(energy_dict.keys())
-
-plt.savefig('foo.pdf')
-plt.show()
+fig, (ax, ax2) = plt.subplots(ncols=2)
+ax.boxplot(data)
+ax.set_xticklabels(index)
+ax2.violinplot(data)
+ax2.set_xticks(range(1,len(index)+1))
+ax2.set_xticklabels(index)
+plt.savefig('plot.pdf')
 print "done"
