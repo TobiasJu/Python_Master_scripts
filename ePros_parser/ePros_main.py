@@ -7,7 +7,6 @@ import sys
 import argparse
 from Bio import AlignIO
 from Bio import pairwise2
-from Bio.pairwise2 import format_alignment
 import time
 import random
 from random import randint
@@ -68,7 +67,6 @@ def align_with_permute_ep_seq(pfam_seq, ep_seq):
 
 
 def calc_seq_identity(alignment):
-    # alignment = pairwise2.align.globalxx(seq1, seq2)
     pos = 0
     max_score = 0
     min_legth = 0
@@ -82,10 +80,6 @@ def calc_seq_identity(alignment):
             min_legth = length
             pos = counter
         counter += 1
-    # print max_score
-    # print max_legth
-    # print pos
-    # print alignment[pos]
     # print alignment[pos][0], "\n", alignment[pos][1]
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     # gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
@@ -124,7 +118,6 @@ for dirpath, dir, files in os.walk(top=args.directory):
         pfam_accesion = file.split(".")[0]
         print pfam_accesion
         pfam_alignment = AlignIO.read(open(dirpath + file), "stockholm")
-        # print("Alignment length %i" % pfam_alignment.get_alignment_length())
 
         # open wanted energy files and create Energy Objects
         for pdb_id in pdbmap_dict[pfam_accesion]:
