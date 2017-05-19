@@ -44,6 +44,7 @@ amino_acids = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
                'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W',
                'ALA': 'A', 'VAL': 'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
 
+
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
     if not key in dict:
@@ -51,33 +52,34 @@ def insert_into_data_structure(key, value, dict):
     else:
         dict[key].append((value))
 
+
 # random permute ep sequence 100 times and align it to the pfam sequence
 def align_with_permute_ep_seq(pfam_seq, ep_seq):
     score_list = []
     ep_list = list(ep_seq)
     for step in range(100):
         random_triple_letter = random.choice(amino_acids.keys())
-        # print amino_acids[random_triple_letter]
-        ep_list[randint(0, (len(ep_list)-1))] = amino_acids[random_triple_letter]
+        ep_list[randint(0, (len(ep_list) - 1))] = amino_acids[random_triple_letter]
         ep_seq = ''.join(ep_list)
         score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
     print score_list
     x_mean = numpy.mean(score_list)
     return x_mean
 
-def calc_seq_identity(seq1, seq2):
-    alignment = pairwise2.align.globalxx(seq1, seq2)
+
+def calc_seq_identity(alignment):
+    # alignment = pairwise2.align.globalxx(seq1, seq2)
     pos = 0
     max_score = 0
-    max_legth = 0
+    min_legth = 0
     counter = 0
-    # take the first alignment with the highest score and max length possible
+    # take the first alignment with the highest score and min length possible
     for a in alignment:
         al1, al2, score, begin, end = a
         length = end - begin
-        if score >= max_score and length > max_legth:
+        if score >= max_score and length < min_legth:
             max_score = score
-            max_legth = length
+            min_legth = length
             pos = counter
         counter += 1
     # print max_score
@@ -86,10 +88,10 @@ def calc_seq_identity(seq1, seq2):
     # print alignment[pos]
     # print alignment[pos][0], "\n", alignment[pos][1]
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
-    #gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
+    # gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     seq_identity = 100.0 * matches / (len(alignment[pos][0]))
-    print "Identity:", seq_identity
     return seq_identity
+
 
 def map_ep_to_pfam(energy_object, pfam_file):
     print "mapping"
@@ -97,11 +99,10 @@ def map_ep_to_pfam(energy_object, pfam_file):
     print pfam_file
     # to do
 
-# ------------------------------- main script -------------------------------- #
+# -------------------------------------- main script ---------------------------------------- #
 
-
-#calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
-#sys.exit(0)
+# calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
+# sys.exit(0)
 
 print "starting..."
 start_time = time.time()
@@ -133,33 +134,31 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 energy_list.append(epros_file.create_energyprofile(file))
 
         # align each pfam sequence
-        for record in pfam_alignment:
-            # print(record.id + " " + record.seq)
+        for pfam_record in pfam_alignment:
             # with each energy sequence
-            for entry in energy_list:
-                print "alignment", entry._epros_file__name, "with", pfam_accesion
-                epros_ss = str(''.join(entry._epros_file__res))
-                pfam_energy_alignment = pairwise2.align.globalxx(record.seq, epros_ss)
+            for energy_entry in energy_list:
+                print "alignment", energy_entry._epros_file__name, "with", pfam_accesion
+                epros_res = str(''.join(energy_entry._epros_file__res))
+                pfam_energy_alignment = pairwise2.align.globalxx(pfam_record.seq, epros_res)
                 x_row = 0
                 for a in pfam_energy_alignment:
                     if a[2] > x_row:
                         x_row = a[2]
                 print "X_ROW: ", x_row
-                x_opt = pairwise2.align.globalxx(record.seq, record.seq, score_only=1)
+                x_opt = pairwise2.align.globalxx(pfam_record.seq, pfam_record.seq, score_only=1)
                 print "X_OPT: ", x_opt
-                x_mean = align_with_permute_ep_seq(record.seq, epros_ss)
+                x_mean = align_with_permute_ep_seq(pfam_record.seq, epros_res)
                 print "X_MEAN: ", x_mean
-                x_real = -1 * numpy.log10((x_row - x_mean)/(x_opt - x_mean))
+                x_real = -1 * numpy.log10((x_row - x_mean) / (x_opt - x_mean))
                 print "X_REAL: ", x_real
-                seq_identity = calc_seq_identity(record.seq, epros_ss)
+                seq_identity = calc_seq_identity(pfam_energy_alignment)
                 print "SEQ_IDENTITY: ", seq_identity
-                x_pred = -1.0061 * numpy.log(seq_identity/100) + 4.7189  # seq identity in % or as 0.xx???
+                x_pred = -1.006 * numpy.log(seq_identity) + 4.7189  # seq identity in % or as 0.xx???
                 print "X_PRED: ", x_pred
                 x_z = (x_real - x_pred) / 0.03858
                 print "X_Z: ", x_z
                 if x_z >= 1.65:
-                    map_ep_to_pfam(entry, file)
+                    map_ep_to_pfam(energy_entry, pfam_record)
 
 print str(time.time() - start_time)
 print "Done"
-
