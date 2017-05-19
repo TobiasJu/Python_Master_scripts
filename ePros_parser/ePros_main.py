@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--directory", help="input pfam directory")
 parser.add_argument("-e", "--energy", help="input energy profile directory")
 parser.add_argument("-p", "--pdbmap", help="pdbmap location")
+parser.add_argument("-o", "--output", help="output directory for mapped files")
 args = parser.parse_args()
 
 # sanity check
@@ -80,20 +81,39 @@ def calc_seq_identity(alignment):
             min_legth = length
             pos = counter
         counter += 1
-    # print alignment[pos][0], "\n", alignment[pos][1]
+    print alignment[pos][0], "\n", alignment[pos][1]
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     # gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     seq_identity = 100.0 * matches / (len(alignment[pos][0]))
     return seq_identity
 
 
-def map_ep_to_pfam(energy_object, pfam_file):
+def map_ep_to_pfam(energy_object, pfam_seq, pfam_acc):
     print "mapping"
-    print energy_object
-    print pfam_file
-    # to do
+    destination = dest_folder + pfam_acc + "_" + energy_object._epros_file__name + ".txt"
+    print "writing to: ", destination
+    print "pfam: "
+    print pfam_seq
+    if os.path.isfile(destination):
+        print "APPEND!"
+        with open(destination, "a") as target:
+            target.write("appended text\n")
+    else:
+        print "CREATING NEW FILE!"
+        with open(destination, 'w') as target:
+            target.write("test\n")
 
-# -------------------------------------- main script ---------------------------------------- #
+
+    # output should look like this
+    '''
+    >ID:    FA9_HUMAN/97-127:1IXA-A/51-81
+    >SEQ:   ----------CESN-----PCLNGGSCK-
+    >QUAN:  ..........2341.....214324112-
+    >SSE:   **********cccc*****cccEEEEccc
+    >EVAL:  -12.32 -12.1 -2.12 -0.12 -7.51...
+    '''
+
+# ---------------------------------------- main script ------------------------------------------------- #
 
 # calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
 # sys.exit(0)
@@ -104,6 +124,14 @@ energy_dir = args.energy
 pfam_dir = args.directory
 pdbmap = args.pdbmap
 pdbmap_dict = {}
+if not args.output:
+    dest_folder = "mapped/"
+else:
+    dest_folder = args.output
+try:
+    os.makedirs(dest_folder)
+except:
+    print "Folder " + dest_folder + " already exist!"
 
 # load all pfam ids from the pdbmap file into a dict
 with open(pdbmap, 'r') as pdbmap_file:
@@ -120,7 +148,10 @@ for dirpath, dir, files in os.walk(top=args.directory):
         pfam_alignment = AlignIO.read(open(dirpath + file), "stockholm")
 
         # open wanted energy files and create Energy Objects
-        for pdb_id in pdbmap_dict[pfam_accesion]:
+        pdb_id_list = pdbmap_dict[pfam_accesion]
+        # no double entries
+        pdb_id_list_set = list(set(pdb_id_list)) 
+        for pdb_id in pdb_id_list_set:
             file = os.path.join(energy_dir + pdb_id + ".ep2")
             if os.path.isfile(file):
                 print "creating energy object " + pdb_id + " for pfam: " + pfam_accesion
@@ -130,7 +161,7 @@ for dirpath, dir, files in os.walk(top=args.directory):
         for pfam_record in pfam_alignment:
             # with each energy sequence
             for energy_entry in energy_list:
-                print "alignment", energy_entry._epros_file__name, "with", pfam_accesion
+                print "alignment", energy_entry._epros_file__name, "with", pfam_accesion, "id", pfam_record.id
                 epros_res = str(''.join(energy_entry._epros_file__res))
                 pfam_energy_alignment = pairwise2.align.globalxx(pfam_record.seq, epros_res)
                 x_row = 0
@@ -151,7 +182,7 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 x_z = (x_real - x_pred) / 0.03858
                 print "X_Z: ", x_z
                 if x_z >= 1.65:
-                    map_ep_to_pfam(energy_entry, pfam_record)
+                    map_ep_to_pfam(energy_entry, pfam_record, pfam_accesion)
 
 print str(time.time() - start_time)
 print "Done"
