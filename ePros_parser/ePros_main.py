@@ -7,6 +7,7 @@ import sys
 import argparse
 from Bio import AlignIO
 from Bio import pairwise2
+from Bio.pairwise2 import format_alignment
 import time
 import random
 from random import randint
@@ -85,31 +86,60 @@ def calc_seq_identity(alignment):
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     # gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     seq_identity = 100.0 * matches / (len(alignment[pos][0]))
-    return seq_identity
+    return seq_identity, pos
 
 
-def map_ep_to_pfam(energy_object, pfam_seq, pfam_acc):
+def map_ep_to_pfam(alignment, max_pos, energy_object, pfam_seq, pfam_acc):
     print "mapping"
     destination = dest_folder + pfam_acc + "_" + energy_object._epros_file__name + ".txt"
     print "writing to: ", destination
-    print "pfam: "
-    print pfam_seq
+    #print "pfam: ", pfam_seq
+    #print alignment[max_pos][0]
+    #print "next"
+    #print alignment[max_pos][1]
+    # print(format_alignment(*alignment[max_pos]))
+    res = str(''.join(energy_entry._epros_file__res))
+    # print res
+    ss = str(''.join(energy_entry._epros_file__ss))
+    # print ss
+    pos_counter = 0
+    pos_array = []
+    for aa in alignment[max_pos][1]:
+        #print aa
+        if aa == energy_entry._epros_file__res[pos_counter]:
+            pos_array.append(pos_counter)
+            pos_counter += 1
+            # print aa
+    # print pos_array
+    # print energy_entry._epros_file__energy
+    energy_seq = energy_entry._epros_file__energy
     if os.path.isfile(destination):
         print "APPEND!"
         with open(destination, "a") as target:
-            target.write("appended text\n")
+            target.write("\n")
+            target.write(">ID:\t" + pfam_seq.id + "\n")
+            target.write(">SEQ:\t" + alignment[max_pos][0] + "\n")
+            target.write(">QUAN:\t" + "to do..." + "\n")
+            target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
+            target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
     else:
         print "CREATING NEW FILE!"
         with open(destination, 'w') as target:
-            target.write("test\n")
+            target.write("\n")
+            target.write(">ID:\t" + pfam_seq.id + "\n")
+            target.write(">SEQ:\t" + alignment[max_pos][0] + "\n")
+            target.write(">QUAN:\t" + "to do..." + "\n")
+            target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
+            target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
+
 
 
     # output should look like this
     '''
     >ID:    FA9_HUMAN/97-127:1IXA-A/51-81
     >SEQ:   ----------CESN-----PCLNGGSCK-
-    >QUAN:  ..........2341.....214324112-
-    >SSE:   **********cccc*****cccEEEEccc
+    >QUAN:  2341.....214324112-
+    >SSE:   cccc*****cccEEEEccc
     >EVAL:  -12.32 -12.1 -2.12 -0.12 -7.51...
     '''
 
@@ -175,14 +205,14 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_MEAN: ", x_mean
                 x_real = -1 * numpy.log10((x_row - x_mean) / (x_opt - x_mean))
                 print "X_REAL: ", x_real
-                seq_identity = calc_seq_identity(pfam_energy_alignment)
+                seq_identity, max_pos = calc_seq_identity(pfam_energy_alignment)
                 print "SEQ_IDENTITY: ", seq_identity
                 x_pred = -1.006 * numpy.log(seq_identity) + 4.7189  # seq identity in % or as 0.xx???
                 print "X_PRED: ", x_pred
                 x_z = (x_real - x_pred) / 0.03858
                 print "X_Z: ", x_z
-                if x_z >= 1.65:
-                    map_ep_to_pfam(energy_entry, pfam_record, pfam_accesion)
+                if x_z >= 1.60:
+                    map_ep_to_pfam(pfam_energy_alignment, max_pos, energy_entry, pfam_record, pfam_accesion)
 
 print str(time.time() - start_time)
 print "Done"

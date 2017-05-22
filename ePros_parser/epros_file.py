@@ -1,7 +1,7 @@
 
 class epros_file:
     __name = ""
-    __type = ""
+    __prot_prot_type = ""
     __head = []
     __chain = []
     __resno = []
@@ -10,9 +10,9 @@ class epros_file:
     __energy = []
 
 # constructor
-    def __init__(self, name, type, head, chain, resno, res, ss, energy):
+    def __init__(self, name, prot_type, head, chain, resno, res, ss, energy):
         self.__name = name
-        self.__type = type
+        self.__prot_type = prot_type
         self.__head = head
         self.__chain = chain
         self.__resno = resno
@@ -22,7 +22,7 @@ class epros_file:
 
     def print_all(self):
         print self.__name
-        print self.__type
+        print self.__prot_type
         print self.__head
         print self.__chain
         print self.__resno
@@ -35,7 +35,7 @@ class epros_file:
     def create_energyprofile(self, energy_file):
         line_count = 0
         name = ""
-        type = ""
+        prot_type = ""
         head = []
         chain = []
         resno = []
@@ -49,7 +49,7 @@ class epros_file:
                     if line_count == 0:
                         name = line_array[1].strip()
                     elif line_count == 1:
-                        type = line_array[1]
+                        prot_type = line_array[1]
                     elif line_count == 2:
                         header = line_array
                     else:
@@ -61,6 +61,8 @@ class epros_file:
                         resno.append(line_array[2])
                         res.append(line_array[3])
                         ss.append(line_array[4])
-                        energy.append(line_array[5].rstrip())
+                        energy_str = line_array[5].rstrip()
+                        #energy_float = energy_str.round(2)
+                        energy.append(energy_str)
                 line_count += 1
-        return epros_file(name, type, head, chain, resno, res, ss, energy)
+        return epros_file(name, prot_type, head, chain, resno, res, ss, energy)
