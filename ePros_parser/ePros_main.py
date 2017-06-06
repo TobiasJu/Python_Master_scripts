@@ -63,7 +63,7 @@ def align_with_permute_ep_seq(pfam_seq, ep_seq):
         ep_list[randint(0, (len(ep_list) - 1))] = amino_acids[random_triple_letter]
         ep_seq = ''.join(ep_list)
         score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
-    print score_list
+    # print score_list
     x_mean = numpy.mean(score_list)
     return x_mean
 
@@ -89,7 +89,7 @@ def calc_seq_identity(alignment):
     return seq_identity, pos
 
 
-def map_ep_to_pfam(alignment, max_pos, energy_object, pfam_seq, pfam_acc):
+def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc):
     print "mapping"
     destination = dest_folder + pfam_acc + "_" + energy_object._epros_file__name + ".txt"
     print "writing to: ", destination
@@ -97,14 +97,15 @@ def map_ep_to_pfam(alignment, max_pos, energy_object, pfam_seq, pfam_acc):
     #print alignment[max_pos][0]
     #print "next"
     #print alignment[max_pos][1]
-    # print(format_alignment(*alignment[max_pos]))
+    alignment = alignments[max_pos]
+    print(format_alignment(*alignment))
     res = str(''.join(energy_entry._epros_file__res))
     # print res
     ss = str(''.join(energy_entry._epros_file__ss))
     # print ss
     pos_counter = 0
     pos_array = []
-    for aa in alignment[max_pos][1]:
+    for aa in alignment[1]:
         #print aa
         if aa == energy_entry._epros_file__res[pos_counter]:
             pos_array.append(pos_counter)
@@ -118,7 +119,7 @@ def map_ep_to_pfam(alignment, max_pos, energy_object, pfam_seq, pfam_acc):
         with open(destination, "a") as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ:\t" + alignment[max_pos][0] + "\n")
+            target.write(">SEQ:\t" + alignment[0] + "\n")
             target.write(">QUAN:\t" + "to do..." + "\n")
             target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
             target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
@@ -127,12 +128,11 @@ def map_ep_to_pfam(alignment, max_pos, energy_object, pfam_seq, pfam_acc):
         with open(destination, 'w') as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ:\t" + alignment[max_pos][0] + "\n")
+            target.write(">SEQ:\t" + alignment[0] + "\n")
             target.write(">QUAN:\t" + "to do..." + "\n")
             target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
             target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
-
-
+    sys.exit(0)
 
     # output should look like this
     '''
@@ -167,7 +167,9 @@ except:
 with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
         line_array = line.split(";\t")
-        insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
+        pdb_id = line_array[0]
+        pdb_pos = line_array[5].strip(";\n")
+        insert_into_data_structure(line_array[3], pdb_id + "." + pdb_pos, pdbmap_dict)
 
 # align Pfam sequence with EP sequence
 for dirpath, dir, files in os.walk(top=args.directory):
@@ -181,21 +183,33 @@ for dirpath, dir, files in os.walk(top=args.directory):
         pdb_id_list = pdbmap_dict[pfam_accesion]
         # no double entries
         pdb_id_list_set = list(set(pdb_id_list)) 
-        for pdb_id in pdb_id_list_set:
+        for pdb_id_with_pos in pdb_id_list_set:
+            pdb_id = pdb_id_with_pos.split(".")[0]
+            pdb_pos = pdb_id_with_pos.split(".")[1]
             file = os.path.join(energy_dir + pdb_id + ".ep2")
             if os.path.isfile(file):
                 print "creating energy object " + pdb_id + " for pfam: " + pfam_accesion
-                energy_list.append(epros_file.create_energyprofile(file))
+                energy_list.append(epros_file.create_energyprofile(file, pdb_pos))
 
         # align each pfam sequence
         for pfam_record in pfam_alignment:
             # with each energy sequence
             for energy_entry in energy_list:
+                # get the right sub sequence from the pdbmap file
+                pdb_start = int(energy_entry._epros_file__pdb_pos.split("-")[0]) + 1  # +1 for logic
+                pdb_end = int(energy_entry._epros_file__pdb_pos.split("-")[1]) + 1
+                # calculate offset, because pdb files often doesn't start with position 1
+                offset = int(energy_entry._epros_file__resno[0])
+                pdb_start -= offset
+                pdb_end -= offset
                 print "alignment", energy_entry._epros_file__name, "with", pfam_accesion, "id", pfam_record.id
-                epros_res = str(''.join(energy_entry._epros_file__res))
-                pfam_energy_alignment = pairwise2.align.globalxx(pfam_record.seq, epros_res)
+                # print energy_entry._epros_file__res[pdb_start:pdb_end]
+                # print len(energy_entry._epros_file__res[pdb_start:pdb_end])
+
+                epros_res = str(''.join(energy_entry._epros_file__res[pdb_start:pdb_end]))
+                pfam_energy_alignments = pairwise2.align.globalxx(pfam_record.seq, epros_res)
                 x_row = 0
-                for a in pfam_energy_alignment:
+                for a in pfam_energy_alignments:
                     if a[2] > x_row:
                         x_row = a[2]
                 print "X_ROW: ", x_row
@@ -205,14 +219,14 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_MEAN: ", x_mean
                 x_real = -1 * numpy.log10((x_row - x_mean) / (x_opt - x_mean))
                 print "X_REAL: ", x_real
-                seq_identity, max_pos = calc_seq_identity(pfam_energy_alignment)
+                seq_identity, max_pos = calc_seq_identity(pfam_energy_alignments)
                 print "SEQ_IDENTITY: ", seq_identity
                 x_pred = -1.006 * numpy.log(seq_identity) + 4.7189  # seq identity in % or as 0.xx???
                 print "X_PRED: ", x_pred
                 x_z = (x_real - x_pred) / 0.03858
                 print "X_Z: ", x_z
                 if x_z >= 1.60:
-                    map_ep_to_pfam(pfam_energy_alignment, max_pos, energy_entry, pfam_record, pfam_accesion)
+                    map_ep_to_pfam(pfam_energy_alignments, max_pos, energy_entry, pfam_record, pfam_accesion)
 
 print str(time.time() - start_time)
 print "Done"

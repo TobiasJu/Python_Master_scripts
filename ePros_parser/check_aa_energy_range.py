@@ -10,8 +10,11 @@ import json
 import itertools
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
+from outliers import smirnov_grubbs as grubbs
+from scipy import stats
 
 # PLEASE NOTICE, this script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files
 
@@ -30,10 +33,12 @@ if not len(sys.argv) > 1:
 
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
-    if not key in dict:
-        dict[key] = [(value)]
-    else:
-        dict[key].append((value))
+    value = float(value)
+    if not value == 0:
+        if not key in dict:
+            dict[key] = [(value)]
+        else:
+            dict[key].append((value))
 
 def plot_boxplot(energy_dict):
     print "plotting violin_box_plot"
@@ -59,7 +64,17 @@ def plot_swarmplot(data_set):
     #                 showcaps=False, boxprops={'facecolor': 'None'},
     #                 showfliers=False, whiskerprops={'linewidth': 0})
     #plt.savefig('swarmplot.pdf')
-    print "PLEASE INSTALL SEABORN"
+
+def plot_histogramm(energy_dict):
+    print "plotting histogramm"
+    for key in energy_dict:
+        print key
+        x = []
+        for value in energy_dict[key]:
+            x.append(value)
+        sns_plot = sns.distplot(x)
+        sns_plot.figure.savefig("histogramm_" + key + ".png")
+
 # ---------------------------------------- main script ------------------------------------------ #
 
 counter = 0
@@ -72,7 +87,7 @@ for dirpath, dir, files in os.walk(top=args.energy):
         counter += 1
         if counter % 10000 == 0:
             print energy_file
-            #break
+            # break
         if energy_file.endswith(".ep2"):
             with open(dirpath + energy_file, 'r') as energy_file_handle:
                 for line in energy_file_handle:
@@ -100,7 +115,12 @@ max_dict = {}
 for key in energy_dict:
     energy_list = energy_dict[key]
     energy_list = [float(x) for x in energy_list]
-    #print len(energy_list)
+
+    print len(energy_list)
+    # energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grupps test
+    energy_list = stats.trim_mean(energy_list, 0.1)  # Trim 10% at both ends
+    print len(energy_list)
+
     insert_into_data_structure(key, numpy.mean(energy_list), mean_dict)
     insert_into_data_structure(key, numpy.std(energy_list), std_dict)
     insert_into_data_structure(key, numpy.amin(energy_list), min_dict)
@@ -124,7 +144,8 @@ print "max: "
 print max_dict
 
 print "plotting..."
-plot_boxplot(energy_dict)
-plot_swarmplot(energy_dict)
+# plot_boxplot(energy_dict)
+# plot_swarmplot(energy_dict)
+plot_histogramm(energy_dict)
 
 print "done"
