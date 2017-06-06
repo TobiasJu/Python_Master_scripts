@@ -8,9 +8,10 @@ class epros_file:
     __res = []
     __ss = []
     __energy = []
+    __pdb_pos = ""
 
 # constructor
-    def __init__(self, name, prot_type, head, chain, resno, res, ss, energy):
+    def __init__(self, name, prot_type, head, chain, resno, res, ss, energy, pdb_pos):
         self.__name = name
         self.__prot_type = prot_type
         self.__head = head
@@ -19,6 +20,7 @@ class epros_file:
         self.__res = res
         self.__ss = ss
         self.__energy = energy
+        self.__pdb_pos = pdb_pos
 
     def print_all(self):
         print self.__name
@@ -29,10 +31,11 @@ class epros_file:
         print self.__res
         print self.__ss
         print self.__energy
+        print self.__pdb_pos
 
     # creates a epros_file object
     @classmethod
-    def create_energyprofile(self, energy_file):
+    def create_energyprofile(self, energy_file, pdb_pos):
         line_count = 0
         name = ""
         prot_type = ""
@@ -65,4 +68,4 @@ class epros_file:
                         #energy_float = energy_str.round(2)
                         energy.append(energy_str)
                 line_count += 1
-        return epros_file(name, prot_type, head, chain, resno, res, ss, energy)
+        return epros_file(name, prot_type, head, chain, resno, res, ss, energy, pdb_pos)
