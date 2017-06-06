@@ -11,7 +11,7 @@ import itertools
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
 
 # PLEASE NOTICE, this script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files
 
@@ -52,13 +52,13 @@ def plot_boxplot(energy_dict):
 
 def plot_swarmplot(data_set):
     print "plotting swarmplot"
-    # sns.set_style("whitegrid")
-    # tips = sns.load_dataset("tips")
-    #ax = sns.swarmplot(x="day", y="total_bill", data=data_set)
-    #ax = sns.boxplot(x="day", y="total_bill", data=data_set,
-    #                 showcaps=False, boxprops={'facecolor': 'None'},
-    #                 showfliers=False, whiskerprops={'linewidth': 0})
-    #plt.savefig('swarmplot.pdf')
+    sns.set_style("whitegrid")
+    tips = sns.load_dataset("tips")
+    ax = sns.swarmplot(x="day", y="total_bill", data=data_set)
+    ax = sns.boxplot(x="day", y="total_bill", data=data_set,
+                     showcaps=False, boxprops={'facecolor': 'None'},
+                     showfliers=False, whiskerprops={'linewidth': 0})
+    plt.savefig('swarmplot.pdf')
     print "PLEASE INSTALL SEABORN"
 # ---------------------------------------- main script ------------------------------------------ #
 
@@ -100,14 +100,13 @@ max_dict = {}
 for key in energy_dict:
     energy_list = energy_dict[key]
     energy_list = [float(x) for x in energy_list]
-    #print len(energy_list)
     insert_into_data_structure(key, numpy.mean(energy_list), mean_dict)
     insert_into_data_structure(key, numpy.std(energy_list), std_dict)
     insert_into_data_structure(key, numpy.amin(energy_list), min_dict)
     insert_into_data_structure(key, numpy.amax(energy_list), max_dict)
 
-print "dumping dict to json file: energy_per_aa.txt"
-json.dump(energy_dict, open("energy_per_aa.txt", 'w'))
+# print "dumping dict to json file: energy_per_aa.txt"
+# json.dump(energy_dict, open("energy_per_aa.txt", 'w'))
 
 mean_dict = collections.OrderedDict(sorted(mean_dict.items()))
 std_dict = collections.OrderedDict(sorted(std_dict.items()))
@@ -124,7 +123,7 @@ print "max: "
 print max_dict
 
 print "plotting..."
-plot_boxplot(energy_dict)
+# plot_boxplot(energy_dict)
 plot_swarmplot(energy_dict)
 
 print "done"
