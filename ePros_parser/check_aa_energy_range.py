@@ -89,9 +89,9 @@ for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         line_count = 0
         counter += 1
-        if counter % 1000 == 0:
+        if counter % 10000 == 0:
             print energy_file
-            break
+            # break
         if energy_file.endswith(".ep2"):
             with open(dirpath + energy_file, 'r') as energy_file_handle:
                 for line in energy_file_handle:
@@ -116,6 +116,7 @@ mean_dict = {}
 std_dict = {}
 min_dict = {}
 max_dict = {}
+grubbs_dict = {}
 for key in energy_dict:
     energy_list = energy_dict[key]
     energy_list = [float(x) for x in energy_list]
@@ -124,11 +125,13 @@ for key in energy_dict:
     energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grupps test
     # energy_list = stats.trim_mean(energy_list, 0.1)  # Trim 10% at both ends
     print len(energy_list)
-
+    energy_list.sort()
+    print energy_list[0:10]
     insert_into_data_structure(key, numpy.mean(energy_list), mean_dict)
     insert_into_data_structure(key, numpy.std(energy_list), std_dict)
     insert_into_data_structure(key, numpy.amin(energy_list), min_dict)
     insert_into_data_structure(key, numpy.amax(energy_list), max_dict)
+    grubbs_dict[key] = energy_list
 
 # print "dumping dict to json file: energy_per_aa.txt"
 # json.dump(energy_dict, open("energy_per_aa.txt", 'w'))
@@ -148,8 +151,8 @@ print "max: "
 print max_dict
 
 print "plotting..."
-# plot_boxplot(energy_dict)
-# plot_swarmplot(energy_dict)
-plot_histogramm(energy_dict)
+plot_boxplot(grubbs_dict)
+# plot_swarmplot(grubbs_dict)
+# plot_histogramm(grubbs_dict)
 
 print "done"

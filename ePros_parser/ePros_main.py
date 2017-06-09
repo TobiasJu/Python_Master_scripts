@@ -98,15 +98,15 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc):
     #print "next"
     #print alignment[max_pos][1]
     alignment = alignments[max_pos]
-    print(format_alignment(*alignment))
+    print alignment[0]
     res = str(''.join(energy_entry._epros_file__res))
     # print res
     ss = str(''.join(energy_entry._epros_file__ss))
     # print ss
     pos_counter = 0
     pos_array = []
-    for aa in alignment[1]:
-        #print aa
+    for aa in alignment[0]:
+        print aa
         if aa == energy_entry._epros_file__res[pos_counter]:
             pos_array.append(pos_counter)
             pos_counter += 1
@@ -119,7 +119,8 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc):
         with open(destination, "a") as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ:\t" + alignment[0] + "\n")
+            target.write(">SEQ1:\t" + str(alignment[0]) + "\n")
+            target.write(">SEQ2:\t" + str(alignment[1]) + "\n")
             target.write(">QUAN:\t" + "to do..." + "\n")
             target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
             target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
@@ -128,7 +129,8 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc):
         with open(destination, 'w') as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ:\t" + alignment[0] + "\n")
+            target.write(">SEQ1:\t" + str(alignment[0]) + "\n")
+            target.write(">SEQ2:\t" + str(alignment[1]) + "\n")
             target.write(">QUAN:\t" + "to do..." + "\n")
             target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
             target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
