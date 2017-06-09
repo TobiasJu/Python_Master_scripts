@@ -73,7 +73,11 @@ def plot_histogramm(energy_dict):
         for value in energy_dict[key]:
             x.append(value)
         sns_plot = sns.distplot(x)
+        sns_plot_all = sns.distplot(x)
         sns_plot.figure.savefig("histogramm_" + key + ".png")
+        sns_plot_all.figure.savefig("histogramm_all.png")
+        sns_plot.figure.clf()
+
 
 # ---------------------------------------- main script ------------------------------------------ #
 
@@ -85,9 +89,9 @@ for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         line_count = 0
         counter += 1
-        if counter % 10000 == 0:
+        if counter % 1000 == 0:
             print energy_file
-            # break
+            break
         if energy_file.endswith(".ep2"):
             with open(dirpath + energy_file, 'r') as energy_file_handle:
                 for line in energy_file_handle:
@@ -117,8 +121,8 @@ for key in energy_dict:
     energy_list = [float(x) for x in energy_list]
 
     print len(energy_list)
-    # energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grupps test
-    energy_list = stats.trim_mean(energy_list, 0.1)  # Trim 10% at both ends
+    energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grupps test
+    # energy_list = stats.trim_mean(energy_list, 0.1)  # Trim 10% at both ends
     print len(energy_list)
 
     insert_into_data_structure(key, numpy.mean(energy_list), mean_dict)
