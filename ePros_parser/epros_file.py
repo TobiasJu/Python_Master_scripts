@@ -66,6 +66,6 @@ class epros_file:
                         ss.append(line_array[4])
                         energy_str = line_array[5].rstrip()
                         #energy_float = energy_str.round(2)
-                        energy.append(energy_str)
+                        energy.append(float(energy_str))
                 line_count += 1
         return epros_file(name, prot_type, head, chain, resno, res, ss, energy, pdb_pos)

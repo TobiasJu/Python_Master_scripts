@@ -12,6 +12,7 @@ import time
 import random
 from random import randint
 import numpy
+import math
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -45,9 +46,11 @@ amino_acids = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
                'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W',
                'ALA': 'A', 'VAL': 'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
 
+quartile = [-118.303418308, -21.3328509911, -9.26231037705, -3.33429827376, 11.5566432042]
+
 
 # inserts a key value pair into the dict, or adds the value if the key exists
-def insert_into_data_structure(key, value, dict):
+def insert_into_dict(key, value, dict):
     if not key in dict:
         dict[key] = [(value)]
     else:
@@ -58,14 +61,17 @@ def insert_into_data_structure(key, value, dict):
 def align_with_permute_ep_seq(pfam_seq, ep_seq):
     score_list = []
     ep_list = list(ep_seq)
-    for step in range(100):
-        random_triple_letter = random.choice(amino_acids.keys())
-        ep_list[randint(0, (len(ep_list) - 1))] = amino_acids[random_triple_letter]
-        ep_seq = ''.join(ep_list)
-        score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
-    # print score_list
-    x_mean = numpy.mean(score_list)
-    return x_mean
+    if len(ep_list) != 0:
+        for step in range(100):
+            random_triple_letter = random.choice(amino_acids.keys())
+            ep_list[randint(0, (len(ep_list) - 1))] = amino_acids[random_triple_letter]
+            ep_seq = ''.join(ep_list)
+            score_list.append(pairwise2.align.globalxx(pfam_seq, ep_seq, score_only=1))
+        # print score_list
+        x_mean = numpy.mean(score_list)
+        return x_mean
+    else:
+        return float('NaN')
 
 
 def calc_seq_identity(alignment):
@@ -85,61 +91,85 @@ def calc_seq_identity(alignment):
     print alignment[pos][0], "\n", alignment[pos][1]
     matches = sum(aa1 == aa2 for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
     # gap_counter = sum(aa1 == "-" and aa2 == "-" for aa1, aa2 in zip(alignment[pos][0], alignment[pos][1]))
-    seq_identity = 100.0 * matches / (len(alignment[pos][0]))
+    seq_identity_percentage = 100.0 * matches / (len(alignment[pos][0]))
+    seq_identity = seq_identity_percentage / 100
     return seq_identity, pos
 
 
-def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc):
+def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc, pdb_start, pdb_end):
     print "mapping"
     destination = dest_folder + pfam_acc + "_" + energy_object._epros_file__name + ".txt"
     print "writing to: ", destination
-    #print "pfam: ", pfam_seq
-    #print alignment[max_pos][0]
-    #print "next"
-    #print alignment[max_pos][1]
     alignment = alignments[max_pos]
-    print alignment[0]
+    print alignment[1]
     res = str(''.join(energy_entry._epros_file__res))
-    # print res
     ss = str(''.join(energy_entry._epros_file__ss))
-    # print ss
-    pos_counter = 0
-    pos_array = []
-    for aa in alignment[0]:
-        print aa
-        if aa == energy_entry._epros_file__res[pos_counter]:
-            pos_array.append(pos_counter)
-            pos_counter += 1
-            # print aa
-    # print pos_array
-    # print energy_entry._epros_file__energy
-    energy_seq = energy_entry._epros_file__energy
+    energy = energy_entry._epros_file__energy[pdb_start:pdb_end]
+
+    export_aa_list = []
+    export_res_list = []
+    export_ss_list = []
+    export_energy_list = []
+    export_quant_list = []
+    i = 0
+    sub_ss = ss[pdb_start:pdb_end]
+    sub_res = res[pdb_start:pdb_end]
+    for aa in alignment[1]:
+        try:
+            (sub_res[i])
+        except:
+            continue
+        if aa == "-" and sub_res[i] != "-":
+            export_aa_list.extend(aa)
+            export_res_list.extend("-")
+            export_ss_list.extend("-")
+            export_energy_list.extend("-")
+            export_quant_list.extend("-")
+        else:
+            export_aa_list.extend(aa)
+            export_res_list.extend(sub_res[i])
+            export_ss_list.extend(sub_ss[i])
+            export_energy_list.extend(['%.2f' % energy[i]])
+            if energy[i] < quartile[1]:
+                export_quant_list.extend("1")
+            elif quartile[1] < energy[i] < quartile[2]:
+                export_quant_list.extend("2")
+            elif quartile[2] < energy[i] < quartile[3]:
+                export_quant_list.extend("3")
+            elif energy[i] > quartile[3]:
+                export_quant_list.extend("4")
+            i += 1
+
+    print ''.join(export_res_list)
+    print ''.join(export_ss_list)
+    print ''.join(export_quant_list)
+    print ' '.join(export_energy_list)
+
     if os.path.isfile(destination):
         print "APPEND!"
         with open(destination, "a") as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ1:\t" + str(alignment[0]) + "\n")
-            target.write(">SEQ2:\t" + str(alignment[1]) + "\n")
-            target.write(">QUAN:\t" + "to do..." + "\n")
-            target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
-            target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
+            target.write(">SEQ:\t" + ''.join(export_res_list) + "\n")
+            #target.write(">SEQ2:\t" + str(alignment[0]) + "\n")
+            target.write(">QUAN:\t" + ''.join(export_quant_list) + "\n")
+            target.write(">SSE:\t" + str(''.join(export_ss_list)) + "\n")
+            target.write(">EVAL:\t" + str(' '.join(export_energy_list)) + "\n")
     else:
         print "CREATING NEW FILE!"
         with open(destination, 'w') as target:
             target.write("\n")
             target.write(">ID:\t" + pfam_seq.id + "\n")
-            target.write(">SEQ1:\t" + str(alignment[0]) + "\n")
-            target.write(">SEQ2:\t" + str(alignment[1]) + "\n")
-            target.write(">QUAN:\t" + "to do..." + "\n")
-            target.write("SSE:\t" + str(''.join(energy_entry._epros_file__ss)) + "\n")
-            target.write(">EVAL:\t" + str(' '.join(energy_entry._epros_file__energy)) + "\n")
-    sys.exit(0)
+            target.write(">SEQ:\t" + ''.join(export_res_list) + "\n")
+            #target.write(">SEQ2:\t" + str(alignment[0]) + "\n")
+            target.write(">QUAN:\t" + ''.join(export_quant_list) + "\n")
+            target.write(">SSE:\t" + str(''.join(export_ss_list)) + "\n")
+            target.write(">EVAL:\t" + str(' '.join(export_energy_list)) + "\n")
 
     # output should look like this
     '''
     >ID:    FA9_HUMAN/97-127:1IXA-A/51-81
-    >SEQ:   ----------CESN-----PCLNGGSCK-
+    >SEQ:   CESN-----PCLNGGSCK-
     >QUAN:  2341.....214324112-
     >SSE:   cccc*****cccEEEEccc
     >EVAL:  -12.32 -12.1 -2.12 -0.12 -7.51...
@@ -171,7 +201,7 @@ with open(pdbmap, 'r') as pdbmap_file:
         line_array = line.split(";\t")
         pdb_id = line_array[0]
         pdb_pos = line_array[5].strip(";\n")
-        insert_into_data_structure(line_array[3], pdb_id + "." + pdb_pos, pdbmap_dict)
+        insert_into_dict(line_array[3], pdb_id + "." + pdb_pos, pdbmap_dict)
 
 # align Pfam sequence with EP sequence
 for dirpath, dir, files in os.walk(top=args.directory):
@@ -217,7 +247,13 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_ROW: ", x_row
                 x_opt = pairwise2.align.globalxx(pfam_record.seq, pfam_record.seq, score_only=1)
                 print "X_OPT: ", x_opt
+                if x_opt > (x_row*10):
+                    print "x_opt delta to big, skipping"
+                    continue
                 x_mean = align_with_permute_ep_seq(pfam_record.seq, epros_res)
+                if math.isnan(x_mean):
+                    print "x_mean is not a number, skipping"
+                    continue
                 print "X_MEAN: ", x_mean
                 x_real = -1 * numpy.log10((x_row - x_mean) / (x_opt - x_mean))
                 print "X_REAL: ", x_real
@@ -227,8 +263,10 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 print "X_PRED: ", x_pred
                 x_z = (x_real - x_pred) / 0.03858
                 print "X_Z: ", x_z
-                if x_z >= 1.60:
-                    map_ep_to_pfam(pfam_energy_alignments, max_pos, energy_entry, pfam_record, pfam_accesion)
+                # if x_z >= 1.60:
+                if seq_identity > 0.90:
+                    map_ep_to_pfam(pfam_energy_alignments, max_pos, energy_entry, pfam_record, pfam_accesion,
+                                   pdb_start, pdb_end)
 
 print str(time.time() - start_time)
 print "Done"
