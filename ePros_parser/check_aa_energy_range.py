@@ -121,12 +121,15 @@ for key in energy_dict:
     energy_list = energy_dict[key]
     energy_list = [float(x) for x in energy_list]
 
-    print len(energy_list)
-    energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grupps test
-    # energy_list = stats.trim_mean(energy_list, 0.1)  # Trim 10% at both ends
-    print len(energy_list)
+    len_before = len(energy_list)
+    energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grubbs test
+    # energy_list = stats.trim_mean(energy_list, 0.01)  # Trim 1% at both ends
+    # check if normal distributed
+    print stats.normaltest(energy_list)
+    len_after = len(energy_list)
+    print len_before - len_after, " subtracted from: ", key
     energy_list.sort()
-    print energy_list[0:10]
+    # print energy_list[0:10]
     insert_into_data_structure(key, numpy.mean(energy_list), mean_dict)
     insert_into_data_structure(key, numpy.std(energy_list), std_dict)
     insert_into_data_structure(key, numpy.amin(energy_list), min_dict)
@@ -151,7 +154,7 @@ print "max: "
 print max_dict
 
 print "plotting..."
-plot_boxplot(grubbs_dict)
+# plot_boxplot(grubbs_dict)
 # plot_swarmplot(grubbs_dict)
 # plot_histogramm(grubbs_dict)
 

@@ -5,6 +5,7 @@ import argparse
 import sys
 import os
 import epros_file
+from outliers import smirnov_grubbs as grubbs
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -66,7 +67,8 @@ for dirpath, dir, files in os.walk(top=args.energy):
 
 energy_list = [float(x) for x in energy_list]
 energy_list.sort()
-print energy_list
+# remove outliers with grubbs algorithm
+energy_list = grubbs.test(energy_list, alpha=0.05)
 print len(energy_list)
 quant = len(energy_list)/4
 print "Quantil: ", quant

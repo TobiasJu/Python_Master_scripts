@@ -174,7 +174,7 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc, pdb_s
     >SSE:   cccc*****cccEEEEccc
     >EVAL:  -12.32 -12.1 -2.12 -0.12 -7.51...
     '''
-
+    sys.exit(0)
 # ---------------------------------------- main script ------------------------------------------------- #
 
 # calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
@@ -231,7 +231,11 @@ for dirpath, dir, files in os.walk(top=args.directory):
                 pdb_start = int(energy_entry._epros_file__pdb_pos.split("-")[0]) + 1  # +1 for logic
                 pdb_end = int(energy_entry._epros_file__pdb_pos.split("-")[1]) + 1
                 # calculate offset, because pdb files often doesn't start with position 1
-                offset = int(energy_entry._epros_file__resno[0])
+                try:
+                    offset = int(energy_entry._epros_file__resno[0])
+                except:
+                    print "OFFSET ERROR! skipping"
+                    continue
                 pdb_start -= offset
                 pdb_end -= offset
                 print "alignment", energy_entry._epros_file__name, "with", pfam_accesion, "id", pfam_record.id
