@@ -106,6 +106,7 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc, pdb_s
     ss = str(''.join(energy_entry._epros_file__ss))
     energy = energy_entry._epros_file__energy[pdb_start:pdb_end]
 
+    # create export Lists
     export_aa_list = []
     export_res_list = []
     export_ss_list = []
@@ -175,7 +176,7 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc, pdb_s
     >EVAL:  -12.32 -12.1 -2.12 -0.12 -7.51...
     '''
     sys.exit(0)
-# ---------------------------------------- main script ------------------------------------------------- #
+# ---------------------------------------------- main script ------------------------------------------------------- #
 
 # calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
 # sys.exit(0)
