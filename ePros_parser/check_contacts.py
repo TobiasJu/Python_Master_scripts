@@ -10,6 +10,7 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import seaborn as sns
 import collections
+import timeit
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -61,6 +62,7 @@ def plot_histogramm(energy_dict):
         sns_plot.figure.clf()
 
 # ---------------------------------------------- main script ---------------------------------------------------- #
+start_time = timeit.default_timer()
 contact_dict ={}
 continue_counter = 0
 print "starting..."
@@ -99,9 +101,12 @@ for dirpath, dir, files in os.walk(top=args.energy):
 
                     a_check_couter += 1
 
+print start_time
 print "analysing and couting dict entries"
 contact_count_dict = {}
 for amino1, amino2_list in contact_dict.iteritems():
+    print "counting dict: ", amino1
+    print timeit.default_timer() - start_time
     a_count_dict = {i: amino2_list.count(i) for i in amino2_list}
     contact_dict[amino1] = a_count_dict
 
