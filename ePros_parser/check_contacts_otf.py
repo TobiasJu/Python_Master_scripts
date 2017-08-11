@@ -110,40 +110,22 @@ for dirpath, dir, files in os.walk(top=args.energy):
                 #    print "alles supi"
                 #else:
                 #    print "FUCKED UP"
+                amino_pos_counter = 0
+                for contact, amino in zip(contacts, amino_dict_with_chains[chain]):
 
-                for amino in amino_dict_with_chains[chain]:
-                    print amino
+                    if contact == "1":
+                        print amino, amino_dict_with_chains[chain][amino_pos_counter]
+                    amino_pos_counter += 1
+                    
+#                for amino in amino_dict_with_chains[chain]:
+#                    print amino
                     # calculate contacts ...
-                    ...
-                print contacts
+
+#                print contacts
                 sys.exit()
 
 
-                # print amino_dict_with_chains[key_chain]
-                # for amino in amino_list:
 
-
-            #for id, contacts in amino_contacts.iteritems():
-                # contact_string = "".join(str(x) for x in contacts)
-                # a_check_couter = 0
-
-                # print id
-            #    for contact in contacts:
-            #        if contact == "1":
-            #            machnix = 0
-                        #print amino_list[a_count]
-
-                            #continue
-                        #try:
-                        #    check = amino_list[id]
-                        #    check = amino_list[a_check_couter]
-                        #except:
-                        #    continue_counter += 1
-                        #    print "ERROR: out of bound exception!"
-                        #    continue
-                        #insert_into_data_structure(amino_list[id], amino_list[a_check_couter], contact_dict)
-
-                        # a_check_couter += 1
             print energy_file
             # print amino_list
             sys.exit()
