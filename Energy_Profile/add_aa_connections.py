@@ -6,17 +6,16 @@ import sys
 import os
 import re
 import itertools
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import numpy as np
-plt.switch_backend('agg')
 
 
 # argparse for information
 parser = argparse.ArgumentParser()
 parser.add_argument("-p", "--pdb", help="PDB directory with PDB files, with subfolder structure: "
-                                        "subfolders are like 00, 0g, 0m, 01, 1a, 1..")
-parser.add_argument("-e", "--energy", help="input energy profile directory (will iterate over all files)")
+                                        "subfolders are like 00, 0g, 0m, 01, 1a, 1.., ")
+parser.add_argument("-pf", "--pdb_file", help="pdb file for a single energy file "
+                                              "if you dont use -p or -pf the default path will be searched")
+parser.add_argument("-e", "--energy_dir", help="input energy profile directory (will iterate over all files)")
 parser.add_argument("-f", "--energy_file", help="input energy profile file (run just for this file)")
 parser.add_argument("-o", "--out", help="output energy profile directory, for EPs with contacts")
 args = parser.parse_args()
@@ -27,34 +26,28 @@ if not len(sys.argv) > 1:
     parser.print_help()
     sys.exit(0)
 
-if args.out:
-    output_folder = args.out + "/"
-else:
-    output_folder = "ep_with_contacts" + "/"
-try:
-    os.makedirs(output_folder)
-except:
-    print output_folder, " already exists!"
+if args.energy_dir:
+    if args.out:
+        output_folder = args.out + "/"
+    else:
+        output_folder = "ep_with_contacts" + "/"
+    try:
+        print "creating... ", output_folder
+        os.makedirs(output_folder)
+    except(OSError):
+        print output_folder, " already exists!"
+
+
 # inserts a key value pair into the dict, or adds the value if the key exists
-def insert_into_data_structure(key, value, dict):
+def insert_into_data_structure(key, value, dictionary):
     if not value == 0:
-        if not key in dict:
-            dict[key] = (value)
+        if not key in dictionary:
+            dictionary[key] = value
         else:
             # there should never be the else case
-            #dict[key].append((value))
+            # dictionary[key].append((value))
             print "ERROR!!!! else: ", key
 
-def plot_scatter(x ,y ,z , name):
-    mpl.rcParams['legend.fontsize'] = 10
-    fig = plt.figure(figsize=(5, 5))
-    ax = fig.gca(projection='3d')
-    np_x = np.array(x)
-    np_y = np.array(y)
-    np_z = np.array(z)
-    ax.scatter(np_x, np_y, np_z, label='Amino Acids')
-    ax.legend()
-    plt.savefig(name + '_scatter.pdf')
 
 def check_if_file_already_computed(energy_file):
     if (os.path.isfile(output_folder + energy_file)):
@@ -62,6 +55,7 @@ def check_if_file_already_computed(energy_file):
         return True
     else:
         return False
+
 
 def check_if_pdb_file_exists(pdb_file):
     if not (os.path.isfile(pdb_file)):
@@ -71,32 +65,37 @@ def check_if_pdb_file_exists(pdb_file):
     else:
         return True
 
+
 def get_pdb_file(energy_file):
     pre_pdb_id = "pdb" + energy_file.split(".")[0]
     pdb_id = pre_pdb_id.split("-")[0]
-    if len(pre_pdb_id.split("-")) == 2:
-        specific_chain = pre_pdb_id.split("-")[1]
-    else:
-        specific_chain = "all"
-    out_name = energy_file.split(".")[0]
     pdb_folder = pdb_id[4:6]
     if args.pdb:
         pdb_path = os.getcwd() + "/" + args.pdb
     else:
         print "trying default path: "
         pdb_path = "/mnt/h/Master/pdb/"
-    pdb_file1 = pdb_path + pdb_folder.lower() + "/" + pdb_id.lower() + ".ent"
-    print energy_file
-    print pdb_file
-    return pdb_file1, specific_chain, out_name
+    pdb_file_return = pdb_path + pdb_folder.lower() + "/" + pdb_id.lower() + ".ent"
+    return pdb_file_return
 
-def calc_energy_file(pdb_file, specific_chain, out_name):
+def get_pdb_file_for_energy_file(energy_file):
+    default_pdb_path = "/ceph/sge-tmp/pdbe/"
+    pdb_file = default_pdb_path + energy_file.split(".ep2")[0].split("/")[-1]
+    return pdb_file
+
+
+def calc_energy_file(pdb_file, energy_file):
     line_count = 0
     xlist = []
     ylist = []
     zlist = []
     poslist = []
     pre_aa_count = ""
+    pre_pdb_id = "pdb" + energy_file.split(".")[0]
+    if len(pre_pdb_id.split("-")) == 2:
+        specific_chain = pre_pdb_id.split("-")[1]
+    else:
+        specific_chain = "all"
     if specific_chain != "all":
         # just the specific Chain
         with open(pdb_file, 'r') as pdb_file_handle:
@@ -132,18 +131,17 @@ def calc_energy_file(pdb_file, specific_chain, out_name):
             for line in pdb_file_handle:
                 if line.startswith('ATOM'):
                     chain = line[21].replace(" ", "")
-                    atom = line[0:5]
-                    absolut_pos = line[6:10].replace(" ", "")
+                    # atom = line[0:5]
+                    # absolut_pos = line[6:10].replace(" ", "")
                     a_type = line[12:15].replace(" ", "")
-                    aa = line[17:20].replace(" ", "")
+                    # aa = line[17:20].replace(" ", "")
                     aa_count = line[22:26].replace(" ", "")
-                    alternate_ca = line[26:27].replace(" ", "")
+                    # alternate_ca = line[26:27].replace(" ", "")
                     oc_x = line[30:37].replace(" ", "")
                     oc_y = line[38:45].replace(" ", "")
                     oc_z = line[46:53].replace(" ", "")
 
                     if a_type == "CA" and pre_aa_count != aa_count:
-                        # print pre_aa_count, aa_count
                         if pre_aa_count != aa_count:
                             xlist.append(float(oc_x))
                             ylist.append(float(oc_y))
@@ -172,15 +170,12 @@ def calc_energy_file(pdb_file, specific_chain, out_name):
                 contact_list.append("0")
         insert_into_data_structure(pos1, contact_list, contact_dict)
 
-    if counter % 10000 == 0:
-        print energy_file
-        # break
+    file_name = energy_file.split("/")[-1]
     if energy_file.endswith(".ep2"):
-        target = open(output_folder + out_name + ".ep2", 'w')
-        # print "writing to: " + output_folder + "/" + out_name + ".ep2"
+        target = open(file_name + ".cnn", 'w')
+        print "writing to: " + file_name
 
-
-        with open(dirpath + energy_file, 'r') as energy_file_handle:
+        with open(energy_file, 'r') as energy_file_handle:
             for line in energy_file_handle:
                 # print line
                 line_array = line.split("\t")
@@ -206,33 +201,51 @@ def calc_energy_file(pdb_file, specific_chain, out_name):
                 line_count += 1
         target.close()
 
-# ---------------------------------------- main script ------------------------------------------ #
+# -------------------------------------------- main script ---------------------------------------------- #
 
 counter = 0
 missing_list = []
 print "starting..."
-if args.energy:
-    print "Whole dir"
-    for dirpath, dir, files in os.walk(top=args.energy):
+if args.energy_dir:
+    print "Adding contacts for whole dir"
+    if not os.path.isdir(args.energy_dir):
+        print args.energy_dir, " is NO directory"
+        sys.exit(0)
+    for dirpath, dir, files in os.walk(top=args.energy_dir):
         for energy_file in files:
             if check_if_file_already_computed(energy_file):
                 continue
-            pdb_file, specific_chain, out_name = get_pdb_file(energy_file)
+            pdb_file = get_pdb_file(energy_file)
             if not check_if_pdb_file_exists(pdb_file):
                 continue
-            calc_energy_file(pdb_file, specific_chain, out_name)
+            print energy_file, " - ", pdb_file
+            calc_energy_file(pdb_file, energy_file)
         counter += 1
 
-elif args.energy_file:
-    print "just one file"
+elif args.energy_file:  # and args.pdb_file:
+    print "Adding contacts for just one file"
     energy_file = args.energy_file
-    pdb_file, specific_chain, out_name = get_pdb_file(energy_file)
-    calc_energy_file(pdb_file, specific_chain, out_name)
+    if args.pdb_file:
+        pdb_file = args.pdb_file
+    else:
+        pdb_file = get_pdb_file_for_energy_file(energy_file)
+    if not check_if_pdb_file_exists(pdb_file):
+        print "file not found: ", pdb_file
+        file_name = energy_file.split("/")[-1]
+        target = open(file_name + ".cnn", 'w')
+        target.write("MISSING PDB FILE")
+        target.close()
+    else:
+        calc_energy_file(pdb_file, args.energy_file)
 
+#else:
+#    print "Error, missing arguments"
+#    sys.exit(0)
 
 print "FINISH!"
-print "Found ", len(missing_list), " missing pdb files"
-print missing_list
+if len(missing_list) > 1:
+    print "Found ", len(missing_list), " missing pdb files"
+    print missing_list
 
 
 

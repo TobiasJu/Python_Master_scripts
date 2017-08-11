@@ -1,17 +1,21 @@
 #!/usr/bin/env nextflow
 
-pdb_files = Channel.fromPath('/ceph/sge-tmp/pdb/*.ent')
+//pdb_files = Channel.fromPath('/ceph/sge-tmp/pdbe/*.ent')
+pdb_files = Channel.fromPath('/homes/tjuhre/tmp/pdb_test/*.ent')
+
 
 //calculate Energyprofiles for pdb file
 process calculate_energy_profile {
-	//excecutor 'drmaa'
-	//clusterOptions '-pe multislot 32'
-
+	//executor 'drmaa'
+	maxForks 100
+    //publishDir '/homes/tjuhre/tmp/energy_files_out', mode: 'copy'
+	//errorStrategy { task.exitStatus == 'terminate' }
+	
 	input:
 	file energy_file_name from pdb_files
 
 	output:
-	file("energy_files/${energy_file_name}.ep2") into connections
+	file "${energy_file_name}.ep2" into connections
 
 	script:
 	"""
@@ -21,17 +25,17 @@ process calculate_energy_profile {
 
 //calculate connections for each ep file
 process add_connections{
-	//excecutor 'drmaa'
-	publishDir '/homes/tjuhre/tmp/energy_files_out', mode: 'copy'
+	//executor 'drmaa'
+	publishDir '/homes/tjuhre/tmp/energy_profiles', mode: 'copy'
 
 	input:
-	file energy_file_name from connections
+	file energy_file from connections
 
 	output:
-	file "${energy_files}" into out
+	file "${energy_file}.cnn" into out
 
 	script:
 	"""
-	./homes/tjuhre/Master/Python_Master_scripts/Energy_Profile/add_aa_connections.py -f ${energy_file_name}
+	/homes/tjuhre/Master/Python_Master_scripts/Energy_Profile/add_aa_connections.py -f ${energy_file}
 	"""
 }

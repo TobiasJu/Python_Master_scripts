@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import collections
 import timeit
+import re
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -29,7 +30,7 @@ if not len(sys.argv) > 1:
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
     if not key in dict:
-        dict[key] = [(value)]
+        dict[key] = value
     else:
         dict[key].append((value))
 
@@ -61,7 +62,7 @@ def plot_histogramm(energy_dict):
         sns_plot_all.figure.savefig("histogramm_all.png")
         sns_plot.figure.clf()
 
-# ---------------------------------------------- main script ---------------------------------------------------- #
+# ------------------------------------------------- main script ------------------------------------------------------ #
 start_time = timeit.default_timer()
 contact_dict ={}
 continue_counter = 0
@@ -70,31 +71,82 @@ for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         print energy_file
         amino_contacts = {}
-        amino_list = []
+        amino_dict_with_chains = {}
+        amino_seq = ""
+        id_list = []
         with open(args.energy + "/" + energy_file, 'r') as energy_file_handle:
             counter = 0
+            chain = ""
+            prev_chain = ""
             for line in energy_file_handle:
                 if line.startswith('ENGY'):
+                    chain = line.split("\t")[1]
+                    if prev_chain != "" and prev_chain != chain:
+                        counter = 0
+                        amino_dict_with_chains[prev_chain] = amino_seq
+                        amino_seq = ""
+                        print "################################################################# SET COUNTER = 0"
+                        print prev_chain
                     amino = line.split("\t")[3]
                     contacts = line.split("\t")[6].replace(" ", "").rstrip()
-                    insert_into_data_structure(counter, contacts, amino_contacts)
-                    amino_list.append(amino)
+                    id = str(counter) + chain
+                    id_list.append(id)
+                    insert_into_data_structure(id, contacts, amino_contacts)
+                    amino_seq += amino
+                    # WIESO IST JEDES 2. ELEMENT LEEEER??
                     counter += 1
-            for a_count, contacts in amino_contacts.iteritems():
-                contact_string = "".join(str(x) for x in contacts)
-                a_check_couter = 0
-                for contact in contact_string:
-                    if contact == "1":
-                        try:
-                            check = amino_list[a_count]
-                            check = amino_list[a_check_couter]
-                        except:
-                            continue_counter += 1
-                            print "ERROR: out of bound exception!"
-                            continue
-                        insert_into_data_structure(amino_list[a_count], amino_list[a_check_couter], contact_dict)
+                    prev_chain = chain
+                # one last time for adding the last chain aa to the dict
+                amino_dict_with_chains[prev_chain] = amino_seq
 
-                    a_check_couter += 1
+            # iterate over data and count
+            for id in id_list:
+                counter = re.split(r'(\d+)', id)[1]
+                chain = re.split(r'(\d+)', id)[-1]
+                print counter
+                print chain
+                contacts = amino_contacts[id]
+                #if (len(contacts) == len(amino_dict_with_chains[chain])):
+                #    print "alles supi"
+                #else:
+                #    print "FUCKED UP"
+
+                for amino in amino_dict_with_chains[chain]:
+                    print amino
+                    # calculate contacts ...
+                    ...
+                print contacts
+                sys.exit()
+
+
+                # print amino_dict_with_chains[key_chain]
+                # for amino in amino_list:
+
+
+            #for id, contacts in amino_contacts.iteritems():
+                # contact_string = "".join(str(x) for x in contacts)
+                # a_check_couter = 0
+
+                # print id
+            #    for contact in contacts:
+            #        if contact == "1":
+            #            machnix = 0
+                        #print amino_list[a_count]
+
+                            #continue
+                        #try:
+                        #    check = amino_list[id]
+                        #    check = amino_list[a_check_couter]
+                        #except:
+                        #    continue_counter += 1
+                        #    print "ERROR: out of bound exception!"
+                        #    continue
+                        #insert_into_data_structure(amino_list[id], amino_list[a_check_couter], contact_dict)
+
+                        # a_check_couter += 1
+            print energy_file
+            # print amino_list
+            sys.exit()
 
 print start_time
 print "analysing and couting dict entries"
