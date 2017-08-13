@@ -12,6 +12,8 @@ import seaborn as sns
 import collections
 import timeit
 import re
+from pprint import pprint
+import copy
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -64,13 +66,19 @@ def plot_histogramm(energy_dict):
 
 # ------------------------------------------------- main script ------------------------------------------------------ #
 start_time = timeit.default_timer()
-contact_dict ={}
+contact_count_dict = {'A': {}, 'C': {}, 'D': {}, 'E': {}, 'F': {}, 'G': {}, 'H': {}, 'I': {}, 'K': {}, 'L': {},
+                      'M': {}, 'N': {}, 'P': {}, 'Q': {}, 'R': {}, 'S': {}, 'T': {}, 'U': {}, 'V': {}, 'W': {}, 'Y': {}}
+sub_contact_count_dict = {'A': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 0, 'G': 0, 'H': 0, 'I': 0, 'K': 0, 'L': 0,
+                          'M': 0, 'N': 0, 'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0, 'U': 0, 'V': 0, 'W': 0, 'Y': 0}
+for key, vale in contact_count_dict.iteritems():
+    contact_count_dict[key] = copy.deepcopy(sub_contact_count_dict)
+
 continue_counter = 0
 print "starting..."
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         print energy_file
-        amino_contacts = {}
+        amino_contacts_dict = {}
         amino_dict_with_chains = {}
         amino_seq = ""
         id_list = []
@@ -81,75 +89,61 @@ for dirpath, dir, files in os.walk(top=args.energy):
             for line in energy_file_handle:
                 if line.startswith('ENGY'):
                     chain = line.split("\t")[1]
+                    if bool(re.search(r'\d', chain)):
+                        continue
                     if prev_chain != "" and prev_chain != chain:
                         counter = 0
                         amino_dict_with_chains[prev_chain] = amino_seq
                         amino_seq = ""
-                        print "################################################################# SET COUNTER = 0"
-                        print prev_chain
+                        #print "#################################################################- SET COUNTER = 0"
+                        #print prev_chain
                     amino = line.split("\t")[3]
                     contacts = line.split("\t")[6].replace(" ", "").rstrip()
                     id = str(counter) + chain
                     id_list.append(id)
-                    insert_into_data_structure(id, contacts, amino_contacts)
+                    insert_into_data_structure(id, contacts, amino_contacts_dict)
                     amino_seq += amino
                     # WIESO IST JEDES 2. ELEMENT LEEEER??
                     counter += 1
                     prev_chain = chain
-                # one last time for adding the last chain aa to the dict
-                amino_dict_with_chains[prev_chain] = amino_seq
+            # one last time for adding the last chain aa_seq to the dict, or the first if only one chain
+            amino_dict_with_chains[prev_chain] = amino_seq
 
             # iterate over data and count
             for id in id_list:
-                counter = re.split(r'(\d+)', id)[1]
+                counter = int(re.split(r'(\d+)', id)[1])
                 chain = re.split(r'(\d+)', id)[-1]
-                print counter
-                print chain
-                contacts = amino_contacts[id]
-                #if (len(contacts) == len(amino_dict_with_chains[chain])):
-                #    print "alles supi"
-                #else:
-                #    print "FUCKED UP"
-                amino_pos_counter = 0
-                for contact, amino in zip(contacts, amino_dict_with_chains[chain]):
+                contacts = amino_contacts_dict[id]
+                if (len(contacts) != len(amino_seq)):
+                    print "YOU FUCKED UP"
+                    continue_counter += 1
+                    continue
+                amino_seq = amino_dict_with_chains[chain]
+                amino_now = amino_seq[counter]
+                contact_index = 0
+                for contact, amino_in_loop in zip(contacts, amino_seq):
+                    # count all contacts except self contacts
+                    if contact == "1" and contact_index != counter:
+                        nix = 0
+                        # print amino_now, amino_in_loop
+                        contact_count_dict[amino_now][amino_in_loop] += 1
+                    contact_index += 1
 
-                    if contact == "1":
-                        print amino, amino_dict_with_chains[chain][amino_pos_counter]
-                    amino_pos_counter += 1
-                    
-#                for amino in amino_dict_with_chains[chain]:
-#                    print amino
-                    # calculate contacts ...
+print "print DICT: "
+# pprint(contact_count_dict)
 
-#                print contacts
-                sys.exit()
+print timeit.default_timer() - start_time
 
+for key, value in contact_count_dict.iteritems():
+    print key
+    print contact_count_dict[key]
 
-
-            print energy_file
-            # print amino_list
-            sys.exit()
-
-print start_time
-print "analysing and couting dict entries"
-contact_count_dict = {}
-for amino1, amino2_list in contact_dict.iteritems():
-    print "counting dict: ", amino1
-    print timeit.default_timer() - start_time
-    a_count_dict = {i: amino2_list.count(i) for i in amino2_list}
-    contact_dict[amino1] = a_count_dict
-
-print contact_dict
-print "sorting dict"
-ordered_contact_dict = collections.OrderedDict(sorted(contact_dict.items()))
-
-for key, value in ordered_contact_dict.iteritems():
-    sys.stdout.write(str(key))
-    sys.stdout.write(",")
-    for key2, value2 in value.iteritems():
-        sys.stdout.write(str(value2))
-        sys.stdout.write(",")
+for key, value in contact_count_dict.iteritems():
+    for key2, value2 in contact_count_dict[key].iteritems():
+        sys.stdout.write(str(value2) + ",")
     print ""
+
+
 
 print "skipped ", continue_counter, " lines of EPs"
 
