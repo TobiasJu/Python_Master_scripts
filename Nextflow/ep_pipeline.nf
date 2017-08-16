@@ -1,7 +1,13 @@
 #!/usr/bin/env nextflow
 
-pdb_files = Channel.fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz')
+
 //pdb_files = Channel.fromPath('/homes/tjuhre/Master/pdb/*.gz')
+
+pdb_files= Channel
+		    .fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz') // pdb1htq.ent
+		    //.from( 'a', 'aa', 'abc', 'pdb184d.ent.gz', 'pdb190d.ent.gz', '/nfs/biodb/pdb/data/structures/all/pdb/pdb1a0d.ent.gz' , '/nfs/biodb/pdb/data/structures/all/pdb/pdb1htq.ent.gz','/nfs/biodb/pdb/data/structures/all/pdb/pdb185d.ent.gz')
+		    .filter( ~/^(?:(?!pdb1htq.ent.gz).)*$/ )
+		    //.subscribe { println it }
 
 
 process extract_pdb_gz {
