@@ -3,15 +3,24 @@
 
 //pdb_files = Channel.fromPath('/homes/tjuhre/Master/pdb/*.gz')
 
-pdb_files= Channel
+//already_done_files = Channel
+//		    .fromPath('/homes/tjuhre/tmp/energy_profiles/*.cnn')
+
+pdb_files = Channel
 		    .fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz') // pdb1htq.ent
 		    //.from( 'a', 'aa', 'abc', 'pdb184d.ent.gz', 'pdb190d.ent.gz', '/nfs/biodb/pdb/data/structures/all/pdb/pdb1a0d.ent.gz' , '/nfs/biodb/pdb/data/structures/all/pdb/pdb1htq.ent.gz','/nfs/biodb/pdb/data/structures/all/pdb/pdb185d.ent.gz')
-		    .filter( ~/^(?:(?!pdb1htq.ent.gz).)*$/ )
+		    .filter( ~/^(?:(?!pdb1htq.ent.gz|pdb2hyn.ent).)*$/ )
 		    //.subscribe { println it }
 
 
+
+//pdb_files.eachWithIndex { item, index ->
+//    println item
+//}
+
+
 process extract_pdb_gz {
-	maxForks 100
+	maxForks 200
 	
 	input:
 	file pdb_file from pdb_files

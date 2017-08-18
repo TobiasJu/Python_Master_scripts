@@ -66,18 +66,21 @@ def plotting(energy_file1, energy_file2):
     y_p = np.array(countpat)
     y_h = np.array(countheal)
     x_h = np.array(labels)
+
+    w = 4000
+    h = 1000
+
+    plt.rcParams["figure.figsize"] = (400, 100)
     plt.axis([pos_list[0], pos_list[-1], -60, 10])
     plt.plot(x_h, y_h, 'r-', label="Energy File 1")
     plt.plot(x_h, y_p, 'b-', label="Energy File 2")
 
-    outfile = "comp_plot" + str(energy_file1) + "_" + str(energy_file1)
+    outfile = "comp_plot_" + str(energy_file1) + "_" + str(energy_file1)
     outfile = "comp_plot"
     plt.xlabel("ResNo")
     plt.ylabel("Energy value")
     plt.title("Energy compairson")
     plt.legend()
-    # plt.show()
-
     plt.savefig(outfile+".png", dpi=1200)
     plt.close()
 
