@@ -5,23 +5,21 @@
 
 //already_done_files = Channel
 //		    .fromPath('/homes/tjuhre/tmp/energy_profiles/*.cnn')
-
+/*
 pdb_files = Channel
 		    .fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz') // pdb1htq.ent
 		    //.from( 'a', 'aa', 'abc', 'pdb184d.ent.gz', 'pdb190d.ent.gz', '/nfs/biodb/pdb/data/structures/all/pdb/pdb1a0d.ent.gz' , '/nfs/biodb/pdb/data/structures/all/pdb/pdb1htq.ent.gz','/nfs/biodb/pdb/data/structures/all/pdb/pdb185d.ent.gz')
 		    .filter( ~/^(?:(?!pdb1htq.ent.gz|pdb2hyn.ent).)*$/ )
 		    //.subscribe { println it }
+*/
+pdb_files = Channel
+			.fromPath('/homes/tjuhre/Master/MSH2_benign_SNPs/*.pdb')
 
 
-
-//pdb_files.eachWithIndex { item, index ->
-//    println item
-//}
-
-
+/*
 process extract_pdb_gz {
 	maxForks 200
-	
+	cache false
 	input:
 	file pdb_file from pdb_files
 
@@ -33,14 +31,16 @@ process extract_pdb_gz {
 	/homes/tjuhre/Master/Python_Master_scripts/extract_all_gz.py -f ${pdb_file}
 	"""
 }
-
+*/
 
 //calculate Energyprofiles for pdb file
 process calculate_energy_profile {
-	executor 'drmaa'
+	//executor 'drmaa'
+	cache false
+	publishDir '/homes/tjuhre/tmp/energy_profiles_no_c', mode: 'copy'
 	
 	input:
-	file energy_file_name from extracted_pdb
+	file energy_file_name from pdb_files
 
 	output:
 	set file("${energy_file_name}.ep2"), file("${energy_file_name}") into calculated_energy_profile
@@ -53,7 +53,8 @@ process calculate_energy_profile {
 
 //calculate connections for each ep file
 process add_connections{
-	executor 'drmaa'
+	//executor 'drmaa'
+	cache false
 	publishDir '/homes/tjuhre/tmp/energy_profiles', mode: 'copy'
 
 	input:
