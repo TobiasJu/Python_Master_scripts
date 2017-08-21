@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import matplotlib
+matplotlib.use('Agg')
 
 import math
 import scipy
 import pylab
 import matplotlib.patches as mpatches
 
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
 
+
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
 import argparse
 
 
@@ -19,6 +22,8 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-e1", "--energy_profile_1", help="input energy profile number 1")
 parser.add_argument("-e2", "--energy_profile_2", help="input energy profile number 2")
+parser.add_argument("-m", "--highlight", help="SNP position numbe")
+
 args = parser.parse_args()
 
 # sanity check
@@ -35,9 +40,12 @@ def plotting(energy_file1, energy_file2):
     energy_list1 = []
     energy_list2 = []
     pos_list = []
-
+    energy_avg_1 = 0
+    energy_avg_2 = 0
+    line_count = 0
     with open(energy_file1) as inf:
         for line in inf:
+            line_count += 1
             if "ENGY" in line:
                 spl = line.split('\t')
                 energy_list1.append(float(spl[5]))
@@ -48,40 +56,44 @@ def plotting(energy_file1, energy_file2):
                 spl = line.split('\t')
                 energy_list2.append(float(spl[5]))
 
+    highlight = int(args.highlight) - pos_list[0]
     labels = []
-    countheal = []
-    countpat = []
+    energy_profile_list_1 = []
+    energy_profile_list_2 = []
+    energy_diff = []
     maxval = max(k for k in energy_list1)
-
-#    max_count = 0
 
     for energy1, energy2, pos in zip(energy_list1, energy_list2, pos_list):
         labels.append(pos)
-        countheal.append(energy1)
-        countpat.append(energy2)
-#    if max(countpat) > max_count:
-#        max_count = max(countpat)
-#    if max(countheal) > max_count:
-#        max_count = max(countheal)
-    y_p = np.array(countpat)
-    y_h = np.array(countheal)
+        energy_profile_list_1.append(energy1)
+        energy_profile_list_2.append(energy2)
+        energy_avg_1 += energy1
+        energy_avg_2 += energy2
+        energy_diff.append(energy1 - energy2)
+
+    y_p = np.array(energy_profile_list_2)
+    y_h = np.array(energy_profile_list_1)
+    y_d = np.array(energy_diff)
     x_h = np.array(labels)
+    diff = str((energy_avg_1 / line_count) - (energy_avg_2 / line_count))[0:6]
 
-    w = 4000
-    h = 1000
+    plt.rcParams["figure.figsize"] = (40, 10)
+    plt.axis([pos_list[0], pos_list[-1], -50, 15])
+    energy_file_name1 = energy_file1.split("/")[-1]
+    energy_file_name2 = energy_file2.split("/")[-1]
+    plt.plot(x_h, y_p, 'r-', label=energy_file_name2)
+    plt.plot(x_h, y_h, 'b-', label=energy_file_name1)
+    plt.plot(x_h, y_d, 'g-', label="diff " + diff)
+    #plt.plot(x_h[12], y_p[0], 'g*')
+    plt.axvspan(x_h[highlight-1], x_h[highlight+1], color='orange', alpha=0.5)
 
-    plt.rcParams["figure.figsize"] = (400, 100)
-    plt.axis([pos_list[0], pos_list[-1], -60, 10])
-    plt.plot(x_h, y_h, 'r-', label="Energy File 1")
-    plt.plot(x_h, y_p, 'b-', label="Energy File 2")
-
-    outfile = "comp_plot_" + str(energy_file1) + "_" + str(energy_file1)
-    outfile = "comp_plot"
+    print energy_avg_1/line_count , energy_avg_2/line_count, diff
+    outfile = "comp_plot_" + str(energy_file_name1) + "_" + str(energy_file_name2)
     plt.xlabel("ResNo")
     plt.ylabel("Energy value")
     plt.title("Energy compairson")
     plt.legend()
-    plt.savefig(outfile+".png", dpi=1200)
+    plt.savefig(outfile+".png")  #, dpi=1)
     plt.close()
 
 
