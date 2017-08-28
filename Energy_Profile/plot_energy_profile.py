@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import matplotlib
 matplotlib.use('Agg')
-
 import Bio.SeqUtils
 import matplotlib.pyplot as plt
 import numpy as np
@@ -83,21 +83,24 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
     diff = str((energy_avg_1 / line_count) - (energy_avg_2 / line_count))[0:6]
 
     plt.rcParams["figure.figsize"] = (45, 10)
-    plt.axis([pos_list[0], pos_list[-1], -50, 15])
+    plt.axis([pos_list[0], pos_list[-1], -40, 15])
     energy_file_name1 = energy_file1.split("/")[-1]
     energy_file_name2 = energy_file2.split("/")[-1]
     plt.plot(x_h, y_p, 'r-', label=energy_file_name2)
     plt.plot(x_h, y_h, 'b-', label=energy_file_name1)
     plt.plot(x_h, y_d, 'g-', label="diff " + diff)
-    #plt.plot(x_h[12], y_p[0], 'g*')
+    # plt.plot(x_h[12], y_p[0], 'g*')
     plt.axvspan(x_h[highlight - 1], x_h[highlight + 1], color='orange', alpha=0.5)
 
     for contact, pos in zip(contacts, pos_list):
         if contact == "1":
             # print pos
-            plt.axvspan(x_h[pos], x_h[pos], color='grey', alpha=0.5)
+            try:
+                plt.axvspan(x_h[pos], x_h[pos], color='grey', alpha=0.5)
+            except IndexError:
+                print "OUT OF RANGE contact: ", x_h[pos]
 
-    print energy_avg_1/line_count , energy_avg_2/line_count, diff
+    print energy_avg_1/line_count, energy_avg_2/line_count, diff
     outfile = "comp_plot45_" + str(energy_file_name1) + "_" + str(energy_file_name2)
     plt.xlabel("ResNo")
     plt.ylabel("Energy value")
