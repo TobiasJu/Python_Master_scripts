@@ -98,7 +98,7 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
             try:
                 plt.axvspan(x_h[pos], x_h[pos], color='grey', alpha=0.5)
             except IndexError:
-                print "OUT OF RANGE contact: ", x_h[pos]
+                print "OUT OF RANGE contact: "
 
     print energy_avg_1/line_count, energy_avg_2/line_count, diff
     outfile = "comp_plot45_" + str(energy_file_name1) + "_" + str(energy_file_name2)
