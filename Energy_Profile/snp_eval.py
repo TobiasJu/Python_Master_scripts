@@ -5,6 +5,7 @@ import argparse
 import sys
 import os
 import re
+import math
 import pprint
 
 ### Script to evaluate the .cnn files from SNPs and prints a table
@@ -115,27 +116,38 @@ for e_file in dir_file_list:
                         a_type = line.split("\t")[1]
                         snp_list.append(a_type.strip())
 
+            # search the snp pos and calculate the energy diff
             for o_energy, snp_energy, resNo in zip(o_energy_list, energy_list, resNo_list):
                 if resNo == absolute_snp_pos:
                     snp_energy_diff = o_energy - snp_energy
                     snp_list.append(snp_energy_diff)
+                    o_energy_square = o_energy**2
+                    snp_energy_square = snp_energy**2
+                    snp_energy_diff_amount = math.sqrt(o_energy_square) - math.sqrt(snp_energy_square)
+                    ################## is NOT THE SAME!!!!!!
+                    # snp_energy_diff_amount = math.sqrt((o_energy**2)) - math.sqrt((snp_energy**2))
+                    snp_list.append(snp_energy_diff_amount)
 
-            # befinden wir uns an der richtigen Stelle?
+            # iterate over contact string and save the contact positions and dont forget the offset
             contact_resNo_list = []
             for contact, resNo in zip(contact_list[absolute_snp_pos - resNo_list[0]], resNo_list):
                 if contact == "1":
                     contact_resNo_list.append(resNo)
 
-            for energy_value, o_energy_value, resNo in zip(energy_list, o_energy_list, resNo_list):
+            # iterate over the contacts and calculate energy diff for every contact
+            for o_energy, snp_energy, resNo in zip(o_energy_list, energy_list, resNo_list):
                 if resNo in contact_resNo_list:
-                    contact_energy_diff = energy_value - o_energy_value
-                    snp_list.append(contact_energy_diff)
-
+                    contact_energy_diff = o_energy - snp_energy
+                    ###### snp_list.append(contact_energy_diff)
+                    o_energy_square = o_energy**2
+                    contact_energy_square = snp_energy**2
+                    contact_energy_amount = math.sqrt(o_energy_square) - math.sqrt(contact_energy_square)
+                    snp_list.append(contact_energy_amount)
             insert_into_data_structure(file_name, snp_list, snp_dict)
 
 # pprint.pprint(snp_dict)
 
-print "File;SNP;clinVar;Name;type;energy_diff;contacts;"
+print "File;SNP;clinVar;Name;type;energy_diff;energy_diff_amount;contact_diffs;contact_diffs_amount"
 for key, value in snp_dict.iteritems():
 
     sys.stdout.write(key)
