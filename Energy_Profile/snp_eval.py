@@ -69,12 +69,13 @@ for e_file in dir_file_list:
             #print file_name
             #print np
             of = np + "_"
-            print of
+            print "of", of
             original_file = ""
             for e_file2 in dir_file_list:
                 if e_file2.endswith(".cnn"):
                     if of in e_file2:
                         original_file = e_file2
+            print "original_file:", original_file
 
             o_resNo_list = []
             o_energy_list = []
@@ -122,11 +123,11 @@ for e_file in dir_file_list:
                     snp_energy_diff = o_energy - snp_energy
                     print snp_energy_diff
                     snp_list.append(snp_energy_diff)
+
                     o_energy_square = o_energy**2
                     snp_energy_square = snp_energy**2
                     snp_energy_diff_amount = math.sqrt(o_energy_square) - math.sqrt(snp_energy_square)
-                    ################## is NOT THE SAME!!!!!!
-                    # snp_energy_diff_amount = math.sqrt((o_energy**2)) - math.sqrt((snp_energy**2))
+
                     snp_list.append(snp_energy_diff_amount)
 
             # iterate over contact string and save the contact positions and dont forget the offset
@@ -158,16 +159,9 @@ for e_file in dir_file_list:
                     #print o_energy, snp_energy, resNo, contact_energy_diff
                     contact_energy_diff_list.append(contact_energy_diff)
 
-                    #if "-" in contact_energy_diff:
-                    #    snp_list.append(contact_energy_diff)
-
-                    #o_energy_square = o_energy**2
-                    #contact_energy_square = snp_energy**2
-                    #contact_energy_amount = math.sqrt(o_energy_square) - math.sqrt(contact_energy_square)
-                    #snp_list.append(contact_energy_amount)
             snp_list.append(total_energy_diff)
             snp_list.append(total_contact_energy_diff)
-            snp_list.append(contact_energy_diff_list)
+            snp_list.extend(contact_energy_diff_list)
             insert_into_data_structure(file_name, snp_list, snp_dict)
 
 # pprint.pprint(snp_dict)
