@@ -9,7 +9,7 @@ pdb_files = Channel
 		    //.fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz')
 		    //.from( 'a', 'aa', 'abc', 'pdb184d.ent.gz', 'pdb190d.ent.gz', '/nfs/biodb/pdb/data/structures/all/pdb/pdb1a0d.ent.gz' , '/nfs/biodb/pdb/data/structures/all/pdb/pdb1htq.ent.gz','/nfs/biodb/pdb/data/structures/all/pdb/pdb185d.ent.gz')
 		    .fromPath('/ceph/sge-tmp/tjuhre/pdb4/*.gz')
-		    .filter( ~/^(?:(?!pdb1htq.ent.gz|pdb2hyn.ent|pdb2ms7.ent|pdb2kox.ent|pdb2wwv.ent).)*$/ )
+		    .filter( ~/^(?:(?!pdb1htq.ent.gz|pdb2hyn.ent|pdb2ms7.ent|pdb2kox.ent|pdb2wwv.ent|pdb2m8l.ent|pdb4cbo.ent|pdb2ku2.ent|pdb4p3r.ent).)*$/ )
 		    //.filter( ~/\/nfs\/biodb\/pdb\/data\/structures\/all\/pdb\/pdb9/)
 		    //.subscribe { println it }
 
