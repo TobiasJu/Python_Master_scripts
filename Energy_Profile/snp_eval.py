@@ -38,10 +38,10 @@ def insert_into_data_structure(key, value, dict):
     else:
         dict[key].append((value))
 
+
 # ------------------------------------------------- main script ------------------------------------------------------ #
 
 snp_dict = {}
-
 dir_file_list = list_files(args.energy)
 for e_file in dir_file_list:
     if e_file.endswith(".cnn"):
@@ -118,16 +118,16 @@ for e_file in dir_file_list:
                         snp_list.append(a_type.strip())
 
             # search the snp pos and calculate the energy diff
+            snp_energy_diff = 0
+            snp_energy_diff_amount = 0
             for o_energy, snp_energy, resNo in zip(o_energy_list, energy_list, resNo_list):
                 if resNo == absolute_snp_pos:
                     snp_energy_diff = o_energy - snp_energy
-                    print snp_energy_diff
                     snp_list.append(snp_energy_diff)
-
-                    o_energy_square = o_energy**2
-                    snp_energy_square = snp_energy**2
-                    snp_energy_diff_amount = math.sqrt(o_energy_square) - math.sqrt(snp_energy_square)
-
+                    if snp_energy_diff < float(0):
+                        snp_energy_diff_amount = snp_energy_diff * -1
+                    else:
+                        snp_energy_diff_amount = snp_energy_diff
                     snp_list.append(snp_energy_diff_amount)
 
             # iterate over contact string and save the contact positions and dont forget the offset
@@ -141,7 +141,7 @@ for e_file in dir_file_list:
             contact_energy_diff_list = []
             # iterate over the contacts and calculate energy diff for every contact
             for o_energy, snp_energy, resNo in zip(o_energy_list, energy_list, resNo_list):
-
+                print len(o_energy_list), len(energy_list)
                 energy_diff = o_energy - snp_energy
                 if energy_diff < float(0):
                     total_energy_diff += energy_diff * -1
@@ -153,7 +153,7 @@ for e_file in dir_file_list:
                     if contact_energy_diff < float(0):
                         total_contact_energy_diff += contact_energy_diff * -1
                     else:
-                        total_contact_energy_diff +=contact_energy_diff
+                        total_contact_energy_diff += contact_energy_diff
 
 
                     #print o_energy, snp_energy, resNo, contact_energy_diff
@@ -166,7 +166,7 @@ for e_file in dir_file_list:
 
 # pprint.pprint(snp_dict)
 
-print "File;SNP;clinVar;Name;type;energy_diff;energy_diff_amount;total_diff;total_contact_diff;contact_diffs;contact_diffs_amount"
+print "File;SNP;clinVar;Name;type;snp_energy_diff;snp_energy_diff_amount;total_energy_diff;total_contact_energy_diff;contact_diffs"
 for key, value in snp_dict.iteritems():
 
     sys.stdout.write(key)

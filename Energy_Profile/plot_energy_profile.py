@@ -47,7 +47,11 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
     if pos_list[0] > snp_pos or pos_list[-1] < snp_pos:
         print "ERROR SNP is NOT in 3D Strukture"
         print "Strukture range: ", pos_list[0], pos_list[-1]
-        sys.exit()
+        if snp_pos == -1:
+            print "no SNP, plot anyway"
+        else:
+            print "skipping, ", energy_file2
+            sys.exit()
     with open(energy_file2) as inf:
         for line in inf:
             if "ENGY" in line:
@@ -101,7 +105,7 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
                 print "OUT OF RANGE contact: "
 
     print energy_avg_1/line_count, energy_avg_2/line_count, diff
-    outfile = "comp_plot45_" + str(energy_file_name1) + "_" + str(energy_file_name2)
+    outfile = "comp_plot_" + str(energy_file_name1) + "_" + str(energy_file_name2)
     plt.xlabel("ResNo")
     plt.ylabel("Energy value")
     plt.title("Energy compairson")
@@ -112,12 +116,16 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
 
 # ------------------------------------------------- main script ------------------------------------------------------ #
 
-
-snp_pre = args.energy_profile_2.split("/")[-1].split(".ep2")[0].split("p.")[-1]
+if "p." in args.energy_profile_2:
+    snp_pre = args.energy_profile_2.split("/")[-1].split(".ep2")[0].split("p.")[-1]
+    snp_pos = int(re.findall('\d+', snp_pre)[0])
+    snp_aa = snp_pre[-3::1]
+else:
+    print "no SNP found!"
+    snp_pre = ""
+    snp_pos = -1
+    snp_aa = ""
 print snp_pre
-
-snp_pos = int(re.findall('\d+', snp_pre)[0])
-snp_aa = snp_pre[-3::1]
 
 print "plotting: ", args.energy_profile_1, args.energy_profile_2, "pos:", snp_pos, "aa: ", snp_aa
 plotting(args.energy_profile_1, args.energy_profile_2, snp_pos, snp_aa)
