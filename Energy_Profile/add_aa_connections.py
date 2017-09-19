@@ -205,7 +205,7 @@ def calc_energy_file(pdb_file, energy_file):
 
 counter = 0
 missing_list = []
-print "starting..."
+print "started!"
 if args.energy_dir:
     print "Adding contacts for whole dir"
     if not os.path.isdir(args.energy_dir):

@@ -165,7 +165,7 @@ def calc_energy_file(pdb_file, energy_file):
 
 counter = 0
 missing_list = []
-print "starting..."
+print "started!"
 
 if args.energy_file:
     print "Adding contacts for just one file"
