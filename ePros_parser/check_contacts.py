@@ -65,7 +65,7 @@ def plot_histogramm(energy_dict):
 start_time = timeit.default_timer()
 contact_dict ={}
 continue_counter = 0
-print "starting..."
+print "started!"
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         print energy_file

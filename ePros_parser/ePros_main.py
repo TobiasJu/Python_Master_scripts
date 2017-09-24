@@ -181,7 +181,7 @@ def map_ep_to_pfam(alignments, max_pos, energy_object, pfam_seq, pfam_acc, pdb_s
 # calc_seq_identity("DYLLPDI", "DYLLPDINHAIDII")
 # sys.exit(0)
 
-print "starting..."
+print "started!"
 start_time = time.time()
 energy_dir = args.energy
 pfam_dir = args.directory

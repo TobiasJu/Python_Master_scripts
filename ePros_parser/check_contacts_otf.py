@@ -43,7 +43,7 @@ for key, vale in contact_count_dict.iteritems():
     contact_count_dict[key] = copy.deepcopy(sub_contact_count_dict)
 
 continue_counter = 0
-print "starting..."
+print "started!"
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         print energy_file

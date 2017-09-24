@@ -15,8 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from outliers import smirnov_grubbs as grubbs
 from scipy import stats
-
-# PLEASE NOTICE, this script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files
+import timeit
 
 # argparse for information
 parser = argparse.ArgumentParser()
@@ -27,7 +26,8 @@ args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
-    print "this script takes a folder of energy files and analyzes them"
+    print "This script takes a folder of energy files and analyzes them"
+    print "PLEASE NOTICE: This script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files"
     parser.print_help()
     sys.exit(0)
 
@@ -83,14 +83,18 @@ def plot_histogramm(energy_dict):
 
 counter = 0
 energy_dict = {}
+start_time = timeit.default_timer()
+total_file_count = sum([len(files) for r, d, files in os.walk(top=args.energy)])
 
-print "starting..."
+print "started for:", total_file_count, "files"
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         line_count = 0
         counter += 1
         if counter % 10000 == 0:
             print energy_file
+            percentage = counter / total_file_count
+            print percentage, "%"
             # break
         if energy_file.endswith(".ep2"):
             with open(dirpath + energy_file, 'r') as energy_file_handle:
@@ -156,6 +160,10 @@ print max_dict
 print "plotting..."
 # plot_boxplot(grubbs_dict)
 # plot_swarmplot(grubbs_dict)
-# plot_histogramm(grubbs_dict)
+plot_histogramm(grubbs_dict)
 
+end_time = timeit.default_timer()
 print "done"
+print start_time - end_time
+
+
