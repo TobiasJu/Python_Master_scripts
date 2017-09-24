@@ -26,7 +26,8 @@ args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
-    print "This script takes a folder of energy files and analyzes them"
+    print "This script takes a folder of energy files, analyzes them and print min, max, avg."
+    print "This script can also plot box and violin plots if you uncomment the plot sections."
     print "PLEASE NOTICE: This script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files"
     parser.print_help()
     sys.exit(0)

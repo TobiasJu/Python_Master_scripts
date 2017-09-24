@@ -28,18 +28,12 @@ def insert_into_data_structure(key, value, dict):
     else:
         dict[key].append((value))
 
-# ---------------------------------------- main script ------------------------------------------ #
+# ------------------------------------------------- main script ------------------------------------------------------ #
 
-#pdbmap = args.pdbmap
-#pdbmap_dict = {}
 energy_list = []
 counter = 0
-
-# load all pfam ids from the pdbmap file into a dict
-#with open(pdbmap, 'r') as pdbmap_file:
-#    for line in pdbmap_file:
-#        line_array = line.split(";\t")
-#        insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
+total_file_count = sum([len(files) for r, d, files in os.walk(top=args.energy)])
+print "started for:", total_file_count, "files"
 
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
@@ -71,7 +65,7 @@ energy_list.sort()
 energy_list = grubbs.test(energy_list, alpha=0.05)
 print len(energy_list)
 quant = len(energy_list)/4
-print "Quantil: ", quant
+print quant, "per entries per quantil"
 print energy_list[0]
 print energy_list[quant]
 print energy_list[2*quant]
