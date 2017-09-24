@@ -9,9 +9,9 @@ from outliers import smirnov_grubbs as grubbs
 
 # argparse for information
 parser = argparse.ArgumentParser()
-#parser.add_argument("-d", "--directory", help="input directory of the Pfam family files")
 parser.add_argument("-e", "--energy", help="input energy profile directory")
-#parser.add_argument("-p", "--pdbmap", help="pdbmap location")
+parser.add_argument("-g", "--glob", help="globular proteins only")
+parser.add_argument("-t", "--transmembrane", help="transmembrane proteins only, enter path/to/pdbtm_all.list.txt")
 args = parser.parse_args()
 
 # sanity check
@@ -30,10 +30,20 @@ def insert_into_data_structure(key, value, dict):
 
 # ------------------------------------------------- main script ------------------------------------------------------ #
 
+# pdbtm_all.list.txt
+pdbtm_list = []
 energy_list = []
 counter = 0
 total_file_count = sum([len(files) for r, d, files in os.walk(top=args.energy)])
 print "started for:", total_file_count, "files"
+
+if args.transmembrane:
+    with open(args.transmembrane, 'r') as pdbtm_list_handle:
+        for line in pdbtm_list_handle:
+            line_array = line.split("_")
+            pdbtm_list.append(line_array[0].upper())
+
+print pdbtm_list
 
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
@@ -41,9 +51,17 @@ for dirpath, dir, files in os.walk(top=args.energy):
         counter += 1
         if counter % 10000 == 0:
             print energy_file
-            percentage = counter / total_file_count
-            print percentage, "%"
+            percentage = (float(counter) / float(total_file_count))*100
+            print"{:.2f}".format(percentage), "%"
         if energy_file.endswith(".ep2"):
+            if args.glob:
+                name = energy_file.split(".ep2")
+                if name in pdbtm_list:
+                    continue
+            if args.transmembrane:
+                name = energy_file.split(".ep2")
+                if name not in pdbtm_list:
+                    continue
             with open(dirpath + "/" + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
                 for line in energy_file_handle:
                     line_array = line.split("\t")
@@ -51,7 +69,7 @@ for dirpath, dir, files in os.walk(top=args.energy):
                         if line_count == 0:
                             name = line_array[1]
                         elif line_count == 1:
-                            type = line_array[1]
+                            typ = line_array[1]
                         elif line_count == 2:
                             header = line_array
                         else:
@@ -67,7 +85,7 @@ energy_list.sort()
 energy_list = grubbs.test(energy_list, alpha=0.05)
 print "Quantiles for: ", total_file_count
 quant = len(energy_list)/4
-print quant, "per entries per quantil"
+print quant, "entries per quantil"
 print energy_list[0]
 print energy_list[quant]
 print energy_list[2*quant]
@@ -92,4 +110,16 @@ Quantil:  29864995
 -9,26223609962
 -3,33428488184
 11,5566432042
+
+new Quantile for globular:
+-81.2912287163
+-21.5377154868
+-9.50643383752
+-3.44146165978
+11.768577356
+
+Quantile for membrane:
+
+
 '''
+
