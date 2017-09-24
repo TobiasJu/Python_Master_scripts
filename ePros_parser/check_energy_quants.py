@@ -41,8 +41,10 @@ for dirpath, dir, files in os.walk(top=args.energy):
         counter += 1
         if counter % 10000 == 0:
             print energy_file
+            percentage = counter / total_file_count
+            print percentage, "%"
         if energy_file.endswith(".ep2"):
-            with open(dirpath + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
+            with open(energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
                 for line in energy_file_handle:
                     line_array = line.split("\t")
                     if not "REMK" in line_array:
@@ -63,7 +65,7 @@ energy_list = [float(x) for x in energy_list]
 energy_list.sort()
 # remove outliers with grubbs algorithm
 energy_list = grubbs.test(energy_list, alpha=0.05)
-print len(energy_list)
+print "Quantiles for: ", total_file_count
 quant = len(energy_list)/4
 print quant, "per entries per quantil"
 print energy_list[0]
