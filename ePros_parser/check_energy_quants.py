@@ -44,7 +44,7 @@ for dirpath, dir, files in os.walk(top=args.energy):
             percentage = counter / total_file_count
             print percentage, "%"
         if energy_file.endswith(".ep2"):
-            with open(energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
+            with open(dirpath + "/" + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
                 for line in energy_file_handle:
                     line_array = line.split("\t")
                     if not "REMK" in line_array:
