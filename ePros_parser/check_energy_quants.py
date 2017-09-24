@@ -9,14 +9,14 @@ from outliers import smirnov_grubbs as grubbs
 
 # argparse for information
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--directory", help="input directory of the Pfam family files")
+#parser.add_argument("-d", "--directory", help="input directory of the Pfam family files")
 parser.add_argument("-e", "--energy", help="input energy profile directory")
-parser.add_argument("-p", "--pdbmap", help="pdbmap location")
+#parser.add_argument("-p", "--pdbmap", help="pdbmap location")
 args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
-    print "this script takes a folder of energy files and analyzes them"
+    print "this script takes a folder of energy files and prints out the quantil ranges"
     parser.print_help()
     sys.exit(0)
 
@@ -30,16 +30,16 @@ def insert_into_data_structure(key, value, dict):
 
 # ---------------------------------------- main script ------------------------------------------ #
 
-pdbmap = args.pdbmap
-pdbmap_dict = {}
+#pdbmap = args.pdbmap
+#pdbmap_dict = {}
 energy_list = []
 counter = 0
 
 # load all pfam ids from the pdbmap file into a dict
-with open(pdbmap, 'r') as pdbmap_file:
-    for line in pdbmap_file:
-        line_array = line.split(";\t")
-        insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
+#with open(pdbmap, 'r') as pdbmap_file:
+#    for line in pdbmap_file:
+#        line_array = line.split(";\t")
+#        insert_into_data_structure(line_array[3], line_array[0], pdbmap_dict)
 
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
