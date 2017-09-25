@@ -21,6 +21,41 @@ if not len(sys.argv) > 1:
     parser.print_help()
     sys.exit(0)
 
+#quantil_start = -81.2912287163
+glob_quantil_1 = -21.5377154868
+glob_quantil_2 = -9.50643383752
+glob_quantil_3 = -3.44146165978
+#quantil_end = 11.768577356
+
+memb_quantil_1 = -11
+memb_quantil_2 = 1
+memb_quantil_3 = 11
+
+# return the energy quantil the energy value is currently in
+def get_glob_quantil(energy_value):
+    quantile = 0
+    if energy_value < glob_quantil_1:
+        quantile = 1
+    elif glob_quantil_1 < energy_value < glob_quantil_2:
+        quantile = 2
+    elif glob_quantil_2 < energy_value < glob_quantil_3:
+        quantile = 3
+    elif energy_value > glob_quantil_3:
+        quantile = 4
+    return quantile
+
+
+def get_memb_quantil(energy_value):
+    quantile = 0
+    if energy_value < memb_quantil_1:
+        quantile = 1
+    elif memb_quantil_1 < energy_value < memb_quantil_2:
+        quantile = 2
+    elif memb_quantil_2 < energy_value < memb_quantil_3:
+        quantile = 3
+    elif energy_value > memb_quantil_3:
+        quantile = 4
+    return quantile
 
 # returns a list of all files in the dir with subdirs
 def list_files(dir):
@@ -122,6 +157,16 @@ for e_file in dir_file_list:
             snp_energy_diff_amount = 0
             for o_energy, snp_energy, resNo in zip(o_energy_list, energy_list, resNo_list):
                 if resNo == absolute_snp_pos:
+                    if a_type == "globular":
+                        o_quantil = get_glob_quantil(o_energy)
+                        snp_quantil = get_glob_quantil(snp_energy)
+                    else:
+                        o_quantil = get_memb_quantil(o_energy)
+                        snp_quantil = get_memb_quantil(snp_energy)
+                    if o_quantil != snp_quantil:
+                        snp_list.append(o_quantil - snp_quantil)
+                    else:
+                        snp_list.append(o_quantil)
                     snp_energy_diff = o_energy - snp_energy
                     snp_list.append(snp_energy_diff)
                     if snp_energy_diff < float(0):

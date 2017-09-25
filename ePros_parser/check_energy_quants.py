@@ -41,7 +41,7 @@ if args.transmembrane:
     with open(args.transmembrane, 'r') as pdbtm_list_handle:
         for line in pdbtm_list_handle:
             line_array = line.split("_")
-            pdbtm_list.append(line_array[0].upper())
+            pdbtm_list.append(line_array[0])
 
 print pdbtm_list
 
@@ -55,11 +55,11 @@ for dirpath, dir, files in os.walk(top=args.energy):
             print"{:.2f}".format(percentage), "%"
         if energy_file.endswith(".ep2"):
             if args.glob:
-                name = energy_file.split(".ep2")
+                name = energy_file.split(".ep2")[0]
                 if name in pdbtm_list:
                     continue
             if args.transmembrane:
-                name = energy_file.split(".ep2")
+                name = energy_file.split(".ep2")[0]
                 if name not in pdbtm_list:
                     continue
             with open(dirpath + "/" + energy_file, 'r') as energy_file_handle:  # with open(energy_dir + file, 'r') as energy_file:
@@ -83,7 +83,7 @@ energy_list = [float(x) for x in energy_list]
 energy_list.sort()
 # remove outliers with grubbs algorithm
 energy_list = grubbs.test(energy_list, alpha=0.05)
-print "Quantiles for: ", total_file_count
+print "Quantiles for: ", total_file_count, "files"
 quant = len(energy_list)/4
 print quant, "entries per quantil"
 print energy_list[0]
