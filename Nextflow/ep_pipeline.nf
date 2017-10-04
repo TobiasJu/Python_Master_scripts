@@ -1,18 +1,13 @@
 #!/usr/bin/env nextflow
 
-//pdb_files = Channel.fromPath('/homes/tjuhre/Master/pdb/*.gz')
-
-//already_done_files = Channel
-//		    .fromPath('/homes/tjuhre/tmp/energy_profiles/*.cnn')
+// this script is currently for calculationg energyprofiles for alpha helial membran proteins from the ".fromPath(...)" folder
+// currently the script runs on a local machine wiht nextflow installed
+// you can run this script with drmaa on the cloud if you uncomment the excecutor lines
 
 pdb_files = Channel
 		    //.fromPath('/nfs/biodb/pdb/data/structures/all/pdb/*.gz')
-		    //.from( 'a', 'aa', 'abc', 'pdb184d.ent.gz', 'pdb190d.ent.gz', '/nfs/biodb/pdb/data/structures/all/pdb/pdb1a0d.ent.gz' , '/nfs/biodb/pdb/data/structures/all/pdb/pdb1htq.ent.gz','/nfs/biodb/pdb/data/structures/all/pdb/pdb185d.ent.gz')
-		    .fromPath('/ceph/sge-tmp/tjuhre/pdb4/*.gz')
+		    .fromPath('/ceph/sge-tmp/tjuhre/membranePDB/*.gz')
 		    .filter( ~/^(?:(?!pdb1htq.ent.gz|pdb4xq2.ent|pdb4cg3.ent|pdb4ptj.ent|pdb4tyv.ent|pdb4tz5.ent|pdb4pth.ent|pdb4p3q.ent|pdb2hyn.ent|pdb2ms7.ent|pdb2kox.ent|pdb2wwv.ent|pdb2m8l.ent|pdb4cbo.ent|pdb2ku2.ent|pdb4p3r.ent|pdb2ku1.ent|pdb2kh2.ent|pdb5ivh.ent.gz|pdb5ivk.ent.gz|pdb5ijn.ent.gz|pdb5exu.ent.gz|pdb5vy4.ent.gz|pdb5vy3.ent.gz).)*$/ )
-		    //.filter( ~/\/nfs\/biodb\/pdb\/data\/structures\/all\/pdb\/pdb9/)
-		    //.subscribe { println it }
-
 
 
 process extract_pdb_gz {
@@ -45,15 +40,32 @@ process calculate_energy_profile {
 
 	script:
 	"""
-	java -jar /homes/tjuhre/Master/Python_Master_scripts/Java/SimpleECalc.jar ${energy_file_name}
+	java -jar /homes/tjuhre/Master/Python_Master_scripts/Java/SimpleECalc.jar m ${energy_file_name}
 	"""
+	//java -jar /homes/tjuhre/Master/Python_Master_scripts/Java/SimpleECalc.jar ${energy_file_name}
 }
+
+/*
+notes to the jar, from Florian:
+
+Das JAR ist einfach mittels 'java -jar SimpleECalc.jar' auf der Kommandozeile auszuführen, als Parameter geben Sie eine (odere mehrere) PDB-Dateinamen an
+
+- desweiteren können Sie mit dem Argument 'g' explizit definieren, dass die Struktur(en) als globuläre Proteine zu betrachten sind
+
+- mit der Option 'm' führen Sie entsprechend die Berechnung für Membran-Proteine aus. Eine MEMEMBED-Installation ist wie gesagt Voraussetzung.
+
+- es ist nicht möglich für jede Struktur explizit den Parameter g oder m zu setzen! Eine solche Umsetzung war in der kurzen Zeit nicht möglich. In diesem Fall können Sie einfach SimpleECalc für jede einzelne Struktur mit entsprechendem Parameter im Batch laufen lassen
+
+- ACHTUNG: wird kein Parameter angegeben, wird die Struktur (oder die Strukturen) als globulär betrachtet! 
+
+*/
+
 
 //calculate connections for each ep file
 process add_connections{
 	//executor 'drmaa'
 	cache false
-	publishDir '/homes/tjuhre/tmp/energy_profiles_4', mode: 'copy'
+	publishDir '/homes/tjuhre/tmp/energy_profiles_membrane', mode: 'copy'
 
 	input:
 	set file(energy_file), file(pdb_file) from calculated_energy_profile
@@ -67,18 +79,19 @@ process add_connections{
 	"""
 }
 
-/*
+
 process rename_energy_files{
-	executor 'drmaa'
+	//executor 'drmaa'
+
+	publishDir '/homes/tjuhre/tmp/energy_profiles_membrane_renamed', mode: 'copy'
 	input:
-	file energy_file from connection
+	file energy_file from connections
 
 	output:
-	file "*.ep2" into connections
+	file "*.ep2" into renamed
 
 	script:
 	"""
-	
+	/homes/tjuhre/Master/Python_Master_scripts/Energy_Profile/rename_cnn_files.py -f $energy_file
 	"""
 }
-*/
