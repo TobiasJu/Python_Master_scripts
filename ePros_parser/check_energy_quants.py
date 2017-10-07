@@ -5,6 +5,8 @@ import argparse
 import sys
 import os
 import epros_file
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from outliers import smirnov_grubbs as grubbs
