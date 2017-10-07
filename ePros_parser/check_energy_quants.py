@@ -5,6 +5,8 @@ import argparse
 import sys
 import os
 import epros_file
+import matplotlib.pyplot as plt
+import numpy as np
 from outliers import smirnov_grubbs as grubbs
 
 # argparse for information
@@ -20,6 +22,21 @@ if not len(sys.argv) > 1:
     parser.print_help()
     sys.exit(0)
 
+
+def plot_boxplot(energy_dict):
+    print "plotting violin_box_plot"
+    index = []
+    data = []
+    for i, (key, val) in enumerate(energy_dict.iteritems()):
+        index.append(key)
+        data.append(map(float, val))
+    fig, (ax, ax2) = plt.subplots(ncols=2)
+    ax.boxplot(data)
+    ax.set_xticklabels(index)
+    ax2.violinplot(data)
+    ax2.set_xticks(range(1, len(index) + 1))
+    ax2.set_xticklabels(index)
+    plt.savefig('box_violin_plot.pdf')
 
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
@@ -42,8 +59,7 @@ if args.transmembrane:
         for line in pdbtm_list_handle:
             line_array = line.split("_")
             pdbtm_list.append(line_array[0])
-
-print pdbtm_list
+    print pdbtm_list
 
 for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
@@ -92,6 +108,9 @@ print energy_list[2*quant]
 print energy_list[3*quant]
 print energy_list[-1]
 
+plt.figure()
+plt.boxplot(energy_list, 0, '')
+plt.savefig('quantiles.pdf')
 
 ###################### OUT
 '''
@@ -119,6 +138,13 @@ new Quantile for globular:
 11.768577356
 
 Quantile for membrane:
+
+3101 files
+-12.2373208162
+4.49279516205
+8.98564351117
+13.4598691639
+46.4967251975
 
 
 '''
