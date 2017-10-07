@@ -8,7 +8,7 @@ import os
 
 # argparse for information
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--pdbdir", help="input energy profile directory")
+parser.add_argument("-d", "--pdbdir", help="input pdb directory with all pdb****.ent.gz files")
 parser.add_argument("-p", "--pdbtm", help="pdbtm_all.list.txt location")
 args = parser.parse_args()
 
@@ -27,6 +27,7 @@ def list_files(dir):
     return file_list
 
 # ------------------------------------------------- main script ------------------------------------------------------ #
+print "started...\n"
 
 pdbtm_list = []
 dir_file_list = list_files(args.pdbdir)
@@ -35,11 +36,17 @@ with open(args.pdbtm, "r") as pdbtm_file_handle:
     for line in pdbtm_file_handle:
         name = line.split("_")[0]
         pdbtm_list.append(name)
+print "read pdbtm.\n"
 
 for pdb_file in dir_file_list:
-    name1 = pdb_file.split("/")[0]
+    name1 = pdb_file.split("/")[-1]
+    print name1
     name2 = name1.split("pdb")[-1]
-    pdb_name = name2.split("ent.gz")
+    print name2
+    pdb_name = name2.split(".ent.gz")[0]
+    print pdb_name
     if pdb_name in pdbtm_list:
         print "copying file: ", pdb_file
         copyfile(pdb_file, "/ceph/sge-tmp/tjuhre/membranePDB/"+name1 )
+
+print "done\n"
