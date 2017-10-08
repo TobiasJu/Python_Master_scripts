@@ -4,10 +4,9 @@
 import os
 
 
-# this script extracts all Proteinfamilies from the given pfam Pfam-A.full.ncbi file (28GB)
-# and creates a file for each family
-
-########## WICHTIG splittet an ID nicht an //  muss noch gefixxt werden ########
+# this script extracts all Proteinfamilies from the given pfam Pfam-A.full.ncbi file (222GB)
+# and creates a file for each family in the split/ folder
+#=GF AC   PF10417.8
 
 line_count = 0
 directory = "split/"
@@ -19,8 +18,8 @@ except:
 
 with open('Pfam-A.full.ncbi', 'r') as all_families_file:
     for line in all_families_file:
-        if "#=GF ID   " in line:
-            id_line = line.split("#=GF ID   ")
+        if "#=GF AC   " in line:
+            id_line = line.split("#=GF AC   ")
             id = id_line[1].strip()
             print id
             try:
@@ -34,3 +33,4 @@ with open('Pfam-A.full.ncbi', 'r') as all_families_file:
         except:
             print "no target to write to"
 print line_count
+
