@@ -9,12 +9,15 @@ import os
 #=GF AC   PF10417.8
 
 line_count = 0
-directory = "split/"
+directory = "pfam_split/"
 
 try:
     os.stat(directory)
 except:
     os.mkdir(directory)
+
+print "making directory ", directory, " in current folder"
+print "looking for Pfam-A.full.ncbi in current folder"
 
 with open('Pfam-A.full.ncbi', 'r') as all_families_file:
     for line in all_families_file:
@@ -26,7 +29,7 @@ with open('Pfam-A.full.ncbi', 'r') as all_families_file:
                 target.close()
             except:
                 print "First run"
-            target = open("split/" + id + ".txt", 'w')
+            target = open(directory + id + ".txt", 'w')
             line_count += 1
         try:
             target.write(line)
