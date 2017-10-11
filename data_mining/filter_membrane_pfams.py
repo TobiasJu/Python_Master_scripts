@@ -11,7 +11,7 @@ import sys
 
 # argparse for information
 parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--pfam_directory", help="pfam_dir pfam directory")
+parser.add_argument("-p", "--pfam_directory", help="pfam directory")
 args = parser.parse_args()
 
 # sanity check

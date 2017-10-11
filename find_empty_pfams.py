@@ -4,16 +4,32 @@
 import os
 import sys
 import shutil
+import argparse
 
-input_dir = "Pfam 31.0/globular/"
-dest = "Pfam 31.0/globular_empty/"
+# argparse for information
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--pfam_directory", help="pfam directory")
+parser.add_argument("-o", "--output_directory", help="output directory for emtpy pfams")
+
+args = parser.parse_args()
+
+# sanity check
+if not len(sys.argv) > 1:
+    print ""
+    parser.print_help()
+    sys.exit(0)
+
+input_dir = args.pfam_directory
+dest = args.output_directory
 
 try:
+    print "Making directory", dest
     os.makedirs(dest)
 except:
     print "Folder " + dest + " already exist!"
 
-# walk through the given directory and check if Pfam ID is in the pdbmap file (if the structure is cleared)
+empty_counter = 0
+print "iterating over pfam directory and searching for emtpy fams"
 for dirpath, dir, files in os.walk(top=input_dir):
     for file in files:
         is_empty = "true"
@@ -29,3 +45,6 @@ for dirpath, dir, files in os.walk(top=input_dir):
         if is_empty == "true":
             print "moving pfam without sequences:" + file
             shutil.move(dirpath + file, dest)
+            empty_counter += 1
+
+print "Found", empty_counter, "empty pfams"
