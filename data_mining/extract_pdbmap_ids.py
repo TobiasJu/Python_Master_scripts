@@ -15,6 +15,7 @@ ids = []
 # sanity check
 if not len(sys.argv) > 1:
     print "this script takes the pdbmap file and extracts all UniProtKB IDs in smaller list files"
+    print "this step is necessary for..."
     parser.print_help()
     sys.exit(0)
 
@@ -23,8 +24,9 @@ with open(pdbmap, 'r') as pdbmap_file:
     for line in pdbmap_file:
         line_array = line.split(";\t")
         uniprotkb_id = line_array[4]
+        print uniprotkb_id
         ids.append(uniprotkb_id)
-
+sys.exit()
 target = open("ids.txt", 'w')
 target2 = open("ids2.txt", 'w')
 target3 = open("ids3.txt", 'w')
