@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
-    print "this script takes a folder of energy files and analyzes them"
+    print "this script takes a folder of energy files and analyzes them, and makes a plot for each SNP of the EP"
     parser.print_help()
     sys.exit(0)
 

@@ -16,18 +16,22 @@ import seaborn as sns
 from outliers import smirnov_grubbs as grubbs
 from scipy import stats
 import timeit
+import math
 
 # argparse for information
 parser = argparse.ArgumentParser()
-# parser.add_argument("-d", "--directory", help="input directory of the Pfam family files")
 parser.add_argument("-e", "--energy", help="input energy profile directory")
+parser.add_argument("-b", "--box_violin_plot", action='store_true', help="plot boxplot and violinplot for all amino acids")
+parser.add_argument("-hi", "--histogramm", action='store_true', help="print one histogramm for each amino acid")
+parser.add_argument("-s", "--swarm", action='store_true', help="print one swarmplot for all amino acid (beta)")
+
 # parser.add_argument("-p", "--pdbmap", help="pdbmap location")
 args = parser.parse_args()
 
 # sanity check
 if not len(sys.argv) > 1:
     print "This script takes a folder of energy files, analyzes them and print min, max, avg."
-    print "This script can also plot box and violin plots if you uncomment the plot sections."
+    print "This script can also plot box, violin, histogramm or swarmplots"
     print "PLEASE NOTICE: This script takes at least 8GB of RAM! If you calculate mean/std/min/max for all 346366 energy files"
     parser.print_help()
     sys.exit(0)
@@ -35,6 +39,8 @@ if not len(sys.argv) > 1:
 # inserts a key value pair into the dict, or adds the value if the key exists
 def insert_into_data_structure(key, value, dict):
     value = float(value)
+    # round to 2 decimals after the dot, if desired
+    # value = float(format(value, '.2f'))
     if not value == 0:
         if not key in dict:
             dict[key] = [(value)]
@@ -66,6 +72,7 @@ def plot_swarmplot(data_set):
                      showfliers=False, whiskerprops={'linewidth': 0})
     plt.savefig('swarmplot.pdf')
 
+# plot one histogramm for each Amino Acid
 def plot_histogramm(energy_dict):
     print "plotting histogramm"
     for key in energy_dict:
@@ -158,12 +165,15 @@ print "max: "
 print max_dict
 
 print "plotting..."
-# plot_boxplot(grubbs_dict)
-# plot_swarmplot(grubbs_dict)
-plot_histogramm(grubbs_dict)
+if args.box_violin_plot:
+    plot_boxplot(grubbs_dict)
+if args.swarm:
+    plot_swarmplot(grubbs_dict)
+if args.histogramm:
+    plot_histogramm(grubbs_dict)
 
 end_time = timeit.default_timer()
 print "done"
-print start_time - end_time
+print "time: ", end_time - start_time, "s"
 
 
