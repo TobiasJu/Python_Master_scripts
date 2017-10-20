@@ -24,6 +24,7 @@ parser.add_argument("-e", "--energy", help="input energy profile directory")
 parser.add_argument("-b", "--box_violin_plot", action='store_true', help="plot boxplot and violinplot for all amino acids")
 parser.add_argument("-hi", "--histogramm", action='store_true', help="print one histogramm for each amino acid")
 parser.add_argument("-s", "--swarm", action='store_true', help="print one swarmplot for all amino acid (beta)")
+parser.add_argument("-n", "--norm", action='store_true', help="test if normal distributed")
 
 # parser.add_argument("-p", "--pdbmap", help="pdbmap location")
 args = parser.parse_args()
@@ -99,9 +100,9 @@ for dirpath, dir, files in os.walk(top=args.energy):
     for energy_file in files:
         line_count = 0
         counter += 1
-        if counter % 10000 == 0:
+        if counter % 1000 == 0:
             print energy_file
-            percentage = counter / total_file_count
+            percentage = (float(counter) / float(total_file_count)) * 100
             print"{:.2f}".format(percentage), "%"
         if energy_file.endswith(".ep2"):
             with open(dirpath + energy_file, 'r') as energy_file_handle:
@@ -136,7 +137,9 @@ for key in energy_dict:
     energy_list = grubbs.test(energy_list, alpha=0.05)  # trim with the grubbs test
     # energy_list = stats.trim_mean(energy_list, 0.01)  # Trim 1% at both ends
     # check if normal distributed
-    print stats.normaltest(energy_list)
+    if args.norm:
+        print stats.normaltest(energy_list)
+
     len_after = len(energy_list)
     print len_before - len_after, " subtracted from: ", key
     energy_list.sort()
