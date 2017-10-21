@@ -35,11 +35,10 @@ def insert_into_dict(key, value, dict):
     else:
         dict[key].append((value))
 
+
 # ------------------------------------------ main script ------------------------------------------------------------- #
 
-currentFile = __file__  # May be 'my_script', or './my_script' or
-                        # '/home/user/test/my_script.py' depending on exactly how
-                        # the script was run/loaded.
+currentFile = __file__   # '/home/user/test/my_script.py' depending on exactly how
 realPath = os.path.realpath(currentFile)  # /home/user/test/my_script.py
 dirPath = os.path.dirname(realPath)  # /home/user/test
 dirName = os.path.basename(dirPath) # test
@@ -54,12 +53,9 @@ with open(args.pdbmap, 'r') as pdbmap_file:
         line_array = line.split(";\t")
         pdb_id = line_array[0]
         pdb_pos = line_array[5].strip(";\n")
-        insert_into_dict(line_array[3], pdb_id + "." + pdb_pos, pdbmap_dict)
-#zahl = 0
+        insert_into_dict(line_array[3], pdb_id + "." + pdb_pos, pdbmap_dict)  # 3 is the position of the Pfam name
+
 for pfam, pdb_ids in pdbmap_dict.iteritems():
-#    zahl += 1
-#    if zahl == 1:
-#        continue
     pos_list = []
     psi_list = []
     phi_list = []
@@ -108,14 +104,30 @@ for pfam, pdb_ids in pdbmap_dict.iteritems():
     psi = pd.Series(psi_list_numpy, name='psi')
     phi = pd.Series(phi_list_numpy, name='phi')
 
-    # Show the joint distribution using kernel density estimation
-    sns_plot = sns.jointplot(phi, psi, kind="kde", size=12, space=0, xlim=(-190, 190), ylim=(-190, 190))
+    sns.set(font_scale=3)  # crazy big
 
-    # sns_plot = (sns.jointplot(phi, psi, size=12, space=0, xlim=(-190, 190), ylim=(-190, 190)).plot_joint(sns.kdeplot, zorder=0, n_levels=6))
+    # Show the joint distribution using kernel density estimation
+    #sns_plot = sns.jointplot(phi, psi, kind="kde", size=12, space=0, xlim=(-190, 190), ylim=(-190, 190))
+
+    # join 2 plots together, kde + ?
+    #sns_plot = (sns.jointplot(phi, psi, kind='scatter', size=12, space=0, xlim=(-190, 190), ylim=(-190, 190)).plot_joint(sns.kdeplot, zorder=0, n_levels=6))
+
+    # scatter plot
+    sns_plot = sns.jointplot(psi, phi, kind='scatter', stat_func=None, size=12, space=0, xlim=(-190, 190), ylim=(-190, 190))
+
+    # kde plot
     # sns_plot = sns.jointplot(psi_list_numpy, phi_list_numpy, kind="hex", color="#4CB391")  # stat_func=kendalltau
 
     print "plotting: ", pfam
-    sns_plot.savefig("Ramachandranplot_kde_new/ramachandranplot_" + pfam + ".png")
+
+    out_directory = "Ramachandranplot_new/"
+
+    try:
+        os.stat(out_directory)
+    except:
+        os.mkdir(out_directory)
+
+    sns_plot.savefig(out_directory + "ramachandranplot_" + pfam + ".png")
     plt.clf()
 
 
