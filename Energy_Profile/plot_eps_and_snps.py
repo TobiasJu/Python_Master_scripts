@@ -18,7 +18,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-e1", "--energy_profile_1", help="input energy profile number 1")
 parser.add_argument("-e2", "--energy_profile_2", help="input energy profile number 2")
 parser.add_argument("-m", "--marker", help="SNP position number")
-parser.add_argument("-a", "--aminoacid", help="new Aminoacid SNP, if any")
+# parser.add_argument("-a", "--aminoacid", help="new Aminoacid SNP, if any")
+parser.add_argument("-c", "--contacts", action='store_true', help="plot all contacts in the plot (beta)")
+
 
 args = parser.parse_args()
 
@@ -113,13 +115,14 @@ def plotting(energy_file1, energy_file2, snp_pos, snp_aa):
     # plt.plot(x_h[12], y_p[0], 'g*')
     plt.axvspan(x_h[highlight - 1], x_h[highlight + 1], color='orange', alpha=0.5)
 
-    for contact, pos in zip(contacts, pos_list):
-        if contact == "1":
-            # print pos
-            try:
-                plt.axvspan(x_h[pos], x_h[pos], color='grey', alpha=0.5)
-            except IndexError:
-                print "OUT OF RANGE contact: "
+    if args.contacts:
+        for contact, pos in zip(contacts, pos_list):
+            if contact == "1":
+                # print pos
+                try:
+                    plt.axvspan(x_h[pos], x_h[pos], color='grey', alpha=0.5)
+                except IndexError:
+                    print "OUT OF RANGE contact: "
 
     print energy_avg_1/line_count, energy_avg_2/line_count, diff
     outfile = "comp_plot_" + str(energy_file_name1) + "_" + str(energy_file_name2)
